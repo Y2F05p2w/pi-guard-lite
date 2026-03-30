@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pickle
-import tempfile
+import shutil
 import unittest
 from pathlib import Path
 
@@ -21,33 +21,39 @@ class ModelManagerTestCase(unittest.TestCase):
         if self.imported_dir.exists():
             for item in self.imported_dir.glob("*"):
                 item.unlink()
+        self.tmpdir = Path(__file__).parent / "_tmp_model_manager"
+        if self.tmpdir.exists():
+            shutil.rmtree(self.tmpdir, ignore_errors=True)
+        self.tmpdir.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
 
     def test_import_and_activate_model(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            source = Path(tmpdir) / "demo.pkl"
-            with source.open("wb") as f:
-                pickle.dump(DemoAnomalyModel(), f)
+        source = self.tmpdir / "demo.pkl"
+        with source.open("wb") as f:
+            pickle.dump(DemoAnomalyModel(), f)
 
-            manager = ModelManager()
-            result = manager.import_model("anomaly", str(source), version="unit-test", activate=True)
-            self.assertEqual(result["model_name"], "anomaly")
-            self.assertEqual(result["version"], "unit-test")
+        manager = ModelManager()
+        result = manager.import_model("anomaly", str(source), version="unit-test", activate=True)
+        self.assertEqual(result["model_name"], "anomaly")
+        self.assertEqual(result["version"], "unit-test")
 
-            versions = manager.list_versions("anomaly")
-            self.assertEqual(len(versions), 1)
-            self.assertEqual(versions[0]["version"], "unit-test")
-            self.assertEqual(versions[0]["is_active"], 1)
+        versions = manager.list_versions("anomaly")
+        self.assertEqual(len(versions), 1)
+        self.assertEqual(versions[0]["version"], "unit-test")
+        self.assertEqual(versions[0]["is_active"], 1)
 
-            grouped = manager.grouped_versions()
-            self.assertIn("anomaly", grouped)
-            self.assertEqual(grouped["anomaly"][0]["version"], "unit-test")
+        grouped = manager.grouped_versions()
+        self.assertIn("anomaly", grouped)
+        self.assertEqual(grouped["anomaly"][0]["version"], "unit-test")
 
-            status = manager.get_status()
-            self.assertIn("anomaly", status["active_versions"])
-            self.assertEqual(status["active_versions"]["anomaly"]["version"], "unit-test")
+        status = manager.get_status()
+        self.assertIn("anomaly", status["active_versions"])
+        self.assertEqual(status["active_versions"]["anomaly"]["version"], "unit-test")
 
-            active_target = Path("models/anomaly_model.pkl")
-            self.assertTrue(active_target.exists())
+        active_target = Path("models/anomaly_model.pkl")
+        self.assertTrue(active_target.exists())
 
 
 if __name__ == "__main__":

@@ -102,6 +102,45 @@ class NotificationResult(BaseModel):
     detail: str = ""
 
 
+class AdvancedFinding(BaseModel):
+    finding_id: str
+    name: str
+    category: str
+    severity: int = 1
+    confidence: float = 0.5
+    description: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class AttackTechnique(BaseModel):
+    technique_id: str
+    name: str
+    tactic: str
+    confidence: float = 0.5
+
+
+class AttackGraphNode(BaseModel):
+    node_key: str
+    node_type: str
+    label: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class AttackGraphEdge(BaseModel):
+    src_key: str
+    dst_key: str
+    relation: str
+
+
+class AnalysisResult(BaseModel):
+    findings: list[AdvancedFinding] = Field(default_factory=list)
+    techniques: list[AttackTechnique] = Field(default_factory=list)
+    graph_nodes: list[AttackGraphNode] = Field(default_factory=list)
+    graph_edges: list[AttackGraphEdge] = Field(default_factory=list)
+    impacted_assets: list[str] = Field(default_factory=list)
+    summary: str = ""
+
+
 class PolicyDecision(BaseModel):
     action: str
     target: str | None = None

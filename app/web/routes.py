@@ -12,7 +12,7 @@ from fastapi.templating import Jinja2Templates
 from app.common.assets import list_assets
 from app.common.config import get_settings, resolve_path
 from app.common.db import get_connection
-from app.common.event_store import list_events
+from app.common.event_store import get_analysis_result, list_events
 from app.common.notifier import Notifier
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
 from app.detector.ml_engine import MLInferenceEngine
@@ -75,6 +75,26 @@ def stats() -> StatsResponse:
 @router.get("/events")
 def events(limit: int = 20) -> list[dict]:
     return list_events(limit=limit)
+
+
+@router.get("/analysis/event/{event_id}")
+def analysis_event(event_id: int) -> dict:
+    result = get_analysis_result(event_id)
+    return result or {"event_id": event_id, "status": "not_found"}
+
+
+@router.get("/analysis/view/{event_id}", response_class=HTMLResponse)
+def analysis_view(request: Request, event_id: int) -> HTMLResponse:
+    result = get_analysis_result(event_id)
+    return templates.TemplateResponse(
+        request=request,
+        name="analysis.html",
+        context={
+            "settings": settings,
+            "event_id": event_id,
+            "result": result,
+        },
+    )
 
 
 @router.get("/policies")

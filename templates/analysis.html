@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>高级攻击分析</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:24px;background:#f5f7fb}
+    .nav a{margin-right:14px;color:#0b57d0;text-decoration:none}
+    .card{background:#fff;padding:18px;border-radius:10px;margin-top:16px}
+    table{width:100%;border-collapse:collapse;background:#fff;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:top}
+    pre{white-space:pre-wrap;word-break:break-all;background:#f7f7f7;padding:12px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <h1>高级攻击分析</h1>
+  <div class="nav">
+    <a href="/">首页</a><a href="/events/view">事件</a><a href="/policies/view">策略</a><a href="/models/view">模型管理</a>
+  </div>
+
+  {% if not result %}
+  <div class="card">
+    <p>未找到 event_id={{ event_id }} 的分析结果。</p>
+  </div>
+  {% else %}
+  <div class="card">
+    <strong>event_id:</strong> {{ result.event_id }}<br>
+    <strong>summary:</strong> {{ result.summary }}<br>
+    <strong>created_at:</strong> {{ result.created_at }}
+  </div>
+
+  <div class="card">
+    <h2>Findings</h2>
+    <pre>{{ result.findings_json }}</pre>
+  </div>
+
+  <div class="card">
+    <h2>MITRE Mapping</h2>
+    <pre>{{ result.mitre_json }}</pre>
+  </div>
+
+  <div class="card">
+    <h2>Attack Graph</h2>
+    <pre>{{ result.graph_json }}</pre>
+  </div>
+
+  <div class="card">
+    <h2>Impacted Assets</h2>
+    <pre>{{ result.impacted_assets_json }}</pre>
+  </div>
+  {% endif %}
+</body>
+</html>

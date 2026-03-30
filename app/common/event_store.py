@@ -4,7 +4,7 @@ import json
 from typing import Any
 
 from app.common.db import get_connection
-from app.common.schemas import FeatureVector, RiskScoreResult, SecurityEvent
+from app.common.schemas import AnalysisResult, FeatureVector, RiskScoreResult, SecurityEvent
 
 
 def insert_event(event: SecurityEvent) -> int:
@@ -74,3 +74,46 @@ def list_events(limit: int = 50) -> list[dict[str, Any]]:
             (limit,),
         ).fetchall()
     return [dict(row) for row in rows]
+
+
+def upsert_analysis_result(event_id: int, result: AnalysisResult) -> None:
+    graph_json = {
+        "nodes": [item.model_dump() for item in result.graph_nodes],
+        "edges": [item.model_dump() for item in result.graph_edges],
+    }
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO analysis_result (
+                event_id, findings_json, mitre_json, graph_json, impacted_assets_json, summary
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(event_id) DO UPDATE SET
+                findings_json = excluded.findings_json,
+                mitre_json = excluded.mitre_json,
+                graph_json = excluded.graph_json,
+                impacted_assets_json = excluded.impacted_assets_json,
+                summary = excluded.summary
+            """,
+            (
+                event_id,
+                json.dumps([item.model_dump() for item in result.findings], ensure_ascii=False),
+                json.dumps([item.model_dump() for item in result.techniques], ensure_ascii=False),
+                json.dumps(graph_json, ensure_ascii=False),
+                json.dumps(result.impacted_assets, ensure_ascii=False),
+                result.summary,
+            ),
+        )
+        conn.commit()
+
+
+def get_analysis_result(event_id: int) -> dict[str, Any] | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT event_id, findings_json, mitre_json, graph_json, impacted_assets_json, summary, created_at
+            FROM analysis_result
+            WHERE event_id = ?
+            """,
+            (event_id,),
+        ).fetchone()
+    return dict(row) if row else None

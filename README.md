@@ -26,6 +26,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 - `http://127.0.0.1:8080/`
 - `http://127.0.0.1:8080/health`
 - `http://127.0.0.1:8080/events/view`
+- `http://127.0.0.1:8080/analysis/view/1`
 - `http://127.0.0.1:8080/policies/view`
 - `http://127.0.0.1:8080/blocklist/view`
 - `http://127.0.0.1:8080/probes/view`
@@ -37,6 +38,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 
 - `docs/部署说明.md`
 - `docs/FluentBit真机接入说明.md`
+- `docs/高级攻击分析说明.md`
 - `docs/部署前检查说明.md`
 - `docs/使用说明.md`
 - `docs/模型训练与调优说明.md`
@@ -96,6 +98,7 @@ python -m unittest tests\test_stability_runner.py
 python -m unittest tests\test_preflight.py
 python -m unittest tests\test_runtime_checks.py
 python -m unittest tests\test_scan_demo.py
+python -m unittest tests\test_advanced_analysis.py
 ```
 
 ## 目录说明

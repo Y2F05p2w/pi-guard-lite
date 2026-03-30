@@ -52,6 +52,38 @@ def parse_text_log(raw_event: RawInputEvent) -> SecurityEvent:
                 metadata={"message": message},
             )
 
+    if source in {"edr.process", "sample.report"}:
+        try:
+            payload = json.loads(message)
+        except Exception:
+            payload = {"message": message}
+
+        if source == "edr.process":
+            return SecurityEvent(
+                ts=now,
+                source=source,
+                event_type="edr.process",
+                src_ip=str(payload.get("host_ip", "")) or None,
+                dst_ip=str(payload.get("dst_ip", "")) or None,
+                severity=int(payload.get("severity", 2)),
+                username=payload.get("user"),
+                signature=str(payload.get("process_name", "process_start")),
+                category="process",
+                raw_path=raw_event.raw_path,
+                metadata=payload,
+            )
+
+        return SecurityEvent(
+            ts=now,
+            source=source,
+            event_type="sample.report",
+            severity=int(payload.get("severity", 2)),
+            signature=str(payload.get("file_name", "sample")),
+            category="sample",
+            raw_path=raw_event.raw_path,
+            metadata=payload,
+        )
+
     if source == "auth.log":
         match = AUTH_FAILURE_RE.search(message)
         if match:

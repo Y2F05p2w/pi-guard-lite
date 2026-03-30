@@ -77,6 +77,16 @@ CREATE TABLE IF NOT EXISTS model_version (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS analysis_result (
+    event_id INTEGER PRIMARY KEY,
+    findings_json TEXT DEFAULT '[]',
+    mitre_json TEXT DEFAULT '[]',
+    graph_json TEXT DEFAULT '{}',
+    impacted_assets_json TEXT DEFAULT '[]',
+    summary TEXT DEFAULT '',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     category TEXT NOT NULL,

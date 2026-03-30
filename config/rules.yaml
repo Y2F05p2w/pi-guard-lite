@@ -1,0 +1,9 @@
+scan_unique_ports_threshold: 10
+ssh_bruteforce_failures_threshold: 5
+http_request_rate_threshold: 20
+long_dns_query_threshold: 45
+suspicious_tlds:
+  - top
+  - xyz
+  - click
+  - pw

@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.common.config import get_settings, resolve_path
 from app.common.db import get_connection
+from app.common.event_store import list_events
 from app.common.schemas import HealthResponse, StatsResponse
 
 
@@ -50,3 +51,8 @@ def stats() -> StatsResponse:
             policies=_count(conn, "policy"),
             blocked=_count(conn, "blocklist"),
         )
+
+
+@router.get("/events")
+def events(limit: int = 20) -> list[dict]:
+    return list_events(limit=limit)

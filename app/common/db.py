@@ -25,4 +25,19 @@ def init_db() -> None:
         schema = f.read()
     with get_connection() as conn:
         conn.executescript(schema)
+        _ensure_column(conn, "event", "source", "TEXT DEFAULT 'unknown'")
+        _ensure_column(conn, "event", "risk_level", "TEXT DEFAULT 'low'")
         conn.commit()
+
+
+def _ensure_column(
+    conn: sqlite3.Connection,
+    table_name: str,
+    column_name: str,
+    column_sql: str,
+) -> None:
+    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    existing_columns = {row["name"] for row in rows}
+    if column_name in existing_columns:
+        return
+    conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_sql}")

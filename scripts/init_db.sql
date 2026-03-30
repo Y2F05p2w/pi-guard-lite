@@ -10,13 +10,22 @@ CREATE TABLE IF NOT EXISTS asset (
 CREATE TABLE IF NOT EXISTS event (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ts TEXT NOT NULL,
+    source TEXT DEFAULT 'unknown',
     src_ip TEXT,
     dst_ip TEXT,
     event_type TEXT NOT NULL,
     severity INTEGER DEFAULT 0,
     anomaly_score REAL DEFAULT 0,
     risk_score REAL DEFAULT 0,
+    risk_level TEXT DEFAULT 'low',
     raw_path TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS feature (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    feature_json TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -26,6 +26,13 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 - `http://127.0.0.1:8080/`
 - `http://127.0.0.1:8080/health`
 
+## 样例流水线测试
+
+```powershell
+python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl
+python -m unittest tests\test_suricata_pipeline.py
+```
+
 ## 目录说明
 
 ```text

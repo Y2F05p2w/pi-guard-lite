@@ -39,7 +39,13 @@ def reset_runtime_tables() -> None:
         conn.commit()
 
 
-def start_targets(host: str, ports: list[int], processor: PipelineProcessor, stop_event: threading.Event) -> list[socket.socket]:
+def start_targets(
+    bind_host: str,
+    report_host: str,
+    ports: list[int],
+    processor: PipelineProcessor,
+    stop_event: threading.Event,
+) -> list[socket.socket]:
     listeners: list[socket.socket] = []
 
     def accept_loop(listener: socket.socket, port: int) -> None:
@@ -54,7 +60,7 @@ def start_targets(host: str, ports: list[int], processor: PipelineProcessor, sto
             with closing(conn):
                 payload = {
                     "src_ip": addr[0],
-                    "dst_ip": host,
+                    "dst_ip": report_host,
                     "dst_port": port,
                     "protocol": "tcp",
                 }
@@ -64,7 +70,7 @@ def start_targets(host: str, ports: list[int], processor: PipelineProcessor, sto
     for port in ports:
         listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        listener.bind((host, port))
+        listener.bind((bind_host, port))
         listener.listen(5)
         listeners.append(listener)
         threading.Thread(target=accept_loop, args=(listener, port), daemon=True).start()
@@ -91,23 +97,34 @@ def run_scan(target_host: str, ports: list[int], source_ip: str | None = None) -
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run a real local TCP scan and let Pi-Guard Lite detect it")
-    parser.add_argument("--target-host", default="127.0.0.1")
-    parser.add_argument("--source-ip", default="127.0.0.2")
+    parser = argparse.ArgumentParser(description="Run a local or remote TCP scan demo and let Pi-Guard Lite detect it")
+    parser.add_argument("--target-host", default="127.0.0.1", help="host to scan in local mode")
+    parser.add_argument("--bind-host", default=None, help="listener bind host, e.g. 0.0.0.0 for remote scans")
+    parser.add_argument("--report-host", default=None, help="host/IP recorded as the destination asset")
+    parser.add_argument("--source-ip", default="127.0.0.2", help="source ip for local self-scan mode")
+    parser.add_argument("--listen-only", action="store_true", help="only listen for another host to scan this machine")
+    parser.add_argument("--wait-seconds", type=int, default=30, help="how long to wait in listen-only mode")
     args = parser.parse_args()
 
     reset_runtime_tables()
     processor = PipelineProcessor()
     stop_event = threading.Event()
-    listeners = start_targets(args.target_host, DEFAULT_PORTS, processor, stop_event)
+    bind_host = args.bind_host or args.target_host
+    report_host = args.report_host or args.target_host
+    listeners = start_targets(bind_host, report_host, DEFAULT_PORTS, processor, stop_event)
     time.sleep(1)
-    scan_results = run_scan(args.target_host, DEFAULT_PORTS, source_ip=args.source_ip)
-    time.sleep(2)
+    if args.listen_only:
+        scan_results = []
+        time.sleep(args.wait_seconds)
+    else:
+        scan_results = run_scan(args.target_host, DEFAULT_PORTS, source_ip=args.source_ip)
+        time.sleep(2)
     stop_event.set()
     for listener in listeners:
         listener.close()
 
     payload = {
+        "mode": "listen-only" if args.listen_only else "self-scan",
         "scan_results": scan_results,
         "events": list_events(50),
         "policies": list_policies(50),

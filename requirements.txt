@@ -1,0 +1,11 @@
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+jinja2==3.1.6
+pydantic==2.11.7
+pydantic-settings==2.10.1
+PyYAML==6.0.2
+requests==2.32.4
+paramiko==4.0.0
+scikit-learn==1.7.1
+lightgbm==4.6.0
+joblib==1.5.1

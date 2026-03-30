@@ -1,0 +1,6 @@
+assets:
+  - ip: "127.0.0.1"
+    hostname: "localhost"
+    asset_type: "service"
+    importance: 5
+    owner: "admin"

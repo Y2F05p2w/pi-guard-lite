@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi-Guard Lite</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 32px; background: #f5f7fb; color: #222; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 16px; }
+    .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+    .value { font-size: 28px; font-weight: bold; margin-top: 8px; }
+    .muted { color: #666; }
+  </style>
+</head>
+<body>
+  <h1>{{ settings.app.name }}</h1>
+  <p class="muted">当前为项目骨架版本，后续会逐步接入感知、决策、执行和动态控制模块。</p>
+  <div class="grid">
+    <div class="card">
+      <div>事件总数</div>
+      <div class="value">{{ stats.events }}</div>
+    </div>
+    <div class="card">
+      <div>策略总数</div>
+      <div class="value">{{ stats.policies }}</div>
+    </div>
+    <div class="card">
+      <div>封禁总数</div>
+      <div class="value">{{ stats.blocked }}</div>
+    </div>
+  </div>
+</body>
+</html>

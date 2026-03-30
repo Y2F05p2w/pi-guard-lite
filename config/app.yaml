@@ -1,0 +1,24 @@
+app:
+  name: "Pi-Guard Lite"
+  host: "0.0.0.0"
+  port: 8080
+  debug: true
+
+paths:
+  database: "data/pi_guard.db"
+  logs_dir: "logs"
+  raw_data_dir: "data/raw"
+  templates_dir: "templates"
+
+risk:
+  alert_threshold: 40
+  block_threshold: 85
+  block_ttl_minutes: 30
+
+probe:
+  enabled: true
+  default_targets:
+    - "http://127.0.0.1:8080/health"
+
+notifier:
+  enabled: false

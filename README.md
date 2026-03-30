@@ -39,6 +39,7 @@ python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl
 python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl --apply-policy --run-probe
 python scripts\run_pipeline_service.py --source suricata --file tests\samples\suricata_eve.jsonl --mode existing
 python scripts\run_pipeline_service.py --source auth.log --file tests\samples\auth.log --mode existing --no-policy --no-probe
+Get-Content tests\samples\fluentbit_syslog.jsonl | python scripts\run_fluentbit_stdin.py --no-policy --no-probe
 python scripts\create_demo_models.py
 python scripts\import_model.py anomaly models\anomaly_model.pkl --version demo-anomaly
 python scripts\release_expired_blocks.py
@@ -50,6 +51,9 @@ python -m unittest tests\test_policy_service.py
 python -m unittest tests\test_baseline.py
 python -m unittest tests\test_ml_engine.py
 python -m unittest tests\test_model_manager.py
+python -m unittest tests\test_fluentbit_input.py
+python -m unittest tests\test_risk_scoring_weights.py
+python -m unittest tests\test_pipeline_integration.py
 ```
 
 ## 目录说明

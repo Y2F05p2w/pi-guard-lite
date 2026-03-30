@@ -1,12 +1,29 @@
 from __future__ import annotations
 
+from app.common.config import get_settings
 from app.common.schemas import FeatureVector, MLInferenceResult, RiskScoreResult, RuleMatch, SecurityEvent
 
 
 class RiskScorer:
-    def __init__(self, alert_threshold: float = 40, block_threshold: float = 85) -> None:
+    def __init__(
+        self,
+        alert_threshold: float = 40,
+        block_threshold: float = 85,
+        weights: dict | None = None,
+    ) -> None:
         self.alert_threshold = alert_threshold
         self.block_threshold = block_threshold
+        self.weights = weights or {}
+
+    @classmethod
+    def from_settings(cls) -> "RiskScorer":
+        settings = get_settings()
+        risk_cfg = settings.get("risk", {})
+        return cls(
+            alert_threshold=float(risk_cfg.get("alert_threshold", 40)),
+            block_threshold=float(risk_cfg.get("block_threshold", 85)),
+            weights=risk_cfg.get("weights", {}),
+        )
 
     def score(
         self,
@@ -15,16 +32,32 @@ class RiskScorer:
         matches: list[RuleMatch],
         ml_result: MLInferenceResult | None = None,
     ) -> RiskScoreResult:
-        base_score = min(max(event.severity, 0) * 10, 30)
+        severity_per_level = float(self.weights.get("severity_per_level", 10))
+        severity_cap = float(self.weights.get("severity_cap", 30))
+        asset_weight = float(self.weights.get("asset_importance", 5))
+        asset_cap = float(self.weights.get("asset_cap", 25))
+        off_hours_bonus = float(self.weights.get("off_hours_bonus", 5))
+        blacklist_bonus_weight = float(self.weights.get("blacklist_bonus", 20))
+        whitelist_penalty = float(self.weights.get("whitelist_penalty", 40))
+        baseline_cap = float(self.weights.get("baseline_cap", 25))
+        anomaly_multiplier = float(self.weights.get("anomaly_multiplier", 0.15))
+        ml_anomaly_multiplier = float(self.weights.get("ml_anomaly_multiplier", 0.15))
+        ml_classifier_multiplier = float(self.weights.get("ml_classifier_multiplier", 0.25))
+
+        base_score = min(max(event.severity, 0) * severity_per_level, severity_cap)
         rule_score = sum(match.score for match in matches)
-        asset_bonus = min(features.asset_importance * 5, 25)
-        behavior_bonus = 5 if features.off_hours else 0
-        blacklist_bonus = 20 if features.hits_blacklist else 0
-        whitelist_penalty = 40 if features.is_whitelisted else 0
-        baseline_bonus = min(features.baseline_score, 25)
+        asset_bonus = min(features.asset_importance * asset_weight, asset_cap)
+        behavior_bonus = off_hours_bonus if features.off_hours else 0
+        blacklist_bonus = blacklist_bonus_weight if features.hits_blacklist else 0
+        whitelist_penalty = whitelist_penalty if features.is_whitelisted else 0
+        baseline_bonus = min(features.baseline_score, baseline_cap)
         ml_bonus = 0.0
         if ml_result and ml_result.model_loaded:
-            ml_bonus = min((ml_result.anomaly_score * 0.15) + (ml_result.classifier_score * 0.25), 25.0)
+            ml_bonus = min(
+                (ml_result.anomaly_score * ml_anomaly_multiplier)
+                + (ml_result.classifier_score * ml_classifier_multiplier),
+                25.0,
+            )
 
         anomaly_score = round(
             min(
@@ -37,7 +70,7 @@ class RiskScorer:
             2,
         )
         risk_score = base_score + rule_score + asset_bonus + behavior_bonus + blacklist_bonus + baseline_bonus + ml_bonus
-        risk_score += anomaly_score * 0.15
+        risk_score += anomaly_score * anomaly_multiplier
         risk_score -= whitelist_penalty
         risk_score = round(max(0.0, min(100.0, risk_score)), 2)
 

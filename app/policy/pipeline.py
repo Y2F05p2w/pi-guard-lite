@@ -20,7 +20,6 @@ from app.scorer.risk_scoring import RiskScorer
 
 class PipelineProcessor:
     def __init__(self) -> None:
-        settings = get_settings()
         self.extractor = FeatureExtractor()
         self.baseline = BaselineEngine()
         self.ml_engine = MLInferenceEngine()
@@ -28,10 +27,7 @@ class PipelineProcessor:
         self.policy_generator = PolicyGenerator()
         self.policy_service = PolicyService()
         self.rollback_runner = RollbackRunner()
-        self.scorer = RiskScorer(
-            alert_threshold=float(settings["risk"].get("alert_threshold", 40)),
-            block_threshold=float(settings["risk"].get("block_threshold", 85)),
-        )
+        self.scorer = RiskScorer.from_settings()
 
     def process_raw_event(
         self,

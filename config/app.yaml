@@ -15,6 +15,18 @@ risk:
   block_threshold: 85
   block_ttl_minutes: 30
   high_ttl_minutes: 15
+  weights:
+    severity_per_level: 10
+    severity_cap: 30
+    asset_importance: 5
+    asset_cap: 25
+    off_hours_bonus: 5
+    blacklist_bonus: 20
+    whitelist_penalty: 40
+    baseline_cap: 25
+    anomaly_multiplier: 0.15
+    ml_anomaly_multiplier: 0.15
+    ml_classifier_multiplier: 0.25
 
 probe:
   enabled: true

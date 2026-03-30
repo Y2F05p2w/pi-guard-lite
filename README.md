@@ -47,6 +47,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 - `docs/稳定性测试说明.md`
 - `docs/误伤与回滚测试说明.md`
 - `docs/真机联调验收说明.md`
+- `docs/树莓派运行检查说明.md`
 - `docs/树莓派上线手册.md`
 
 ## 样例流水线测试
@@ -64,8 +65,11 @@ python scripts\check_executor.py --test-ip 203.0.113.200 --ttl 60
 bash scripts/bootstrap_rpi.sh
 bash scripts/install_systemd.sh
 bash scripts/status.sh
+bash scripts/install_fluentbit_rpi.sh
+bash scripts/verify_rpi_services.sh
 python scripts\preflight_check.py
 python scripts\check_fluentbit_bridge.py
+python scripts\collect_runtime_report.py
 bash scripts/start_fluentbit_bridge.sh
 python scripts\release_expired_blocks.py
 python scripts\run_scenario_tests.py
@@ -88,6 +92,7 @@ python -m unittest tests\test_scenario_runner.py
 python -m unittest tests\test_false_positive_check.py
 python -m unittest tests\test_stability_runner.py
 python -m unittest tests\test_preflight.py
+python -m unittest tests\test_runtime_checks.py
 ```
 
 ## 目录说明

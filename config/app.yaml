@@ -14,11 +14,17 @@ risk:
   alert_threshold: 40
   block_threshold: 85
   block_ttl_minutes: 30
+  high_ttl_minutes: 15
 
 probe:
   enabled: true
   default_targets:
-    - "http://127.0.0.1:8080/health"
+    - type: "http"
+      target: "http://127.0.0.1:8080/health"
+      timeout_seconds: 3
+      required: true
+  rollback_on_failed_required: true
+  max_failed_required: 1
 
 notifier:
   enabled: false

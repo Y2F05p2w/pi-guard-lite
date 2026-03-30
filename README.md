@@ -30,7 +30,12 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 
 ```powershell
 python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl
+python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl --apply-policy --run-probe
+python scripts\release_expired_blocks.py
 python -m unittest tests\test_suricata_pipeline.py
+python -m unittest tests\test_policy_and_probe.py
+python -m unittest tests\test_system_pipeline.py
+python -m unittest tests\test_policy_service.py
 ```
 
 ## 目录说明

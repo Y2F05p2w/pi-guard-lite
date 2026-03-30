@@ -18,14 +18,20 @@ from app.common.logger import setup_logging
 from app.detector.rule_engine import RuleEngine
 from app.features.extractor import FeatureExtractor
 from app.parser.suricata_parser import parse_suricata_event
+from app.policy.generator import PolicyGenerator
+from app.policy.service import PolicyService
+from app.probe.rollback_runner import RollbackRunner
 from app.scorer.risk_scoring import RiskScorer
 
 
-def process_file(file_path: str) -> int:
+def process_file(file_path: str, apply_policy: bool = False, run_probe: bool = False) -> int:
     settings = get_settings()
     reader = SuricataFileReader(file_path)
     extractor = FeatureExtractor()
     rule_engine = RuleEngine()
+    policy_generator = PolicyGenerator()
+    policy_service = PolicyService()
+    rollback_runner = RollbackRunner()
     scorer = RiskScorer(
         alert_threshold=float(settings["risk"].get("alert_threshold", 40)),
         block_threshold=float(settings["risk"].get("block_threshold", 85)),
@@ -59,6 +65,25 @@ def process_file(file_path: str) -> int:
             risk.risk_score,
             risk.risk_level,
         )
+        if apply_policy:
+            decision = policy_generator.generate(event, features, risk)
+            policy_id, exec_result = policy_service.apply_decision(event_id, decision)
+            logging.getLogger(__name__).info(
+                "policy event_id=%s action=%s target=%s policy_id=%s",
+                event_id,
+                decision.action,
+                decision.target,
+                policy_id,
+            )
+            if run_probe and policy_id and decision.action == "block_ip":
+                rollback_payload = rollback_runner.run_for_policy(policy_id)
+                insert_audit_log("probe", "rollback_check", rollback_payload)
+                if rollback_payload["should_rollback"]:
+                    logging.getLogger(__name__).warning(
+                        "rollback triggered for policy_id=%s reason=%s",
+                        policy_id,
+                        rollback_payload["reason"],
+                    )
         total += 1
     return total
 
@@ -66,11 +91,13 @@ def process_file(file_path: str) -> int:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process Suricata eve.json file")
     parser.add_argument("file", help="Path to eve.json or sample jsonl file")
+    parser.add_argument("--apply-policy", action="store_true", help="Generate and apply policy decisions")
+    parser.add_argument("--run-probe", action="store_true", help="Run probes and rollback after block decisions")
     args = parser.parse_args()
 
     setup_logging()
     init_db()
-    total = process_file(args.file)
+    total = process_file(args.file, apply_policy=args.apply_policy, run_probe=args.run_probe)
     logging.getLogger(__name__).info("processed %s events in total", total)
 
 

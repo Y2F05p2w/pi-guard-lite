@@ -79,3 +79,50 @@ class RiskScoreResult(BaseModel):
     risk_score: float = 0.0
     risk_level: str = "low"
     reasons: list[str] = Field(default_factory=list)
+
+
+class PolicyDecision(BaseModel):
+    action: str
+    target: str | None = None
+    ttl_seconds: int = 0
+    status: str = "pending"
+    reason: str = ""
+
+
+class ExecutionResult(BaseModel):
+    success: bool
+    action: str
+    target: str | None = None
+    device: str = "unknown"
+    simulated: bool = False
+    command: str | None = None
+    stdout: str | None = None
+    stderr: str | None = None
+    detail: str | None = None
+
+
+class ProbeTarget(BaseModel):
+    type: str
+    target: str
+    timeout_seconds: int = 3
+    required: bool = True
+
+
+class ProbeExecutionResult(BaseModel):
+    target: str
+    probe_type: str
+    success: bool
+    required: bool = True
+    latency_ms: int | None = None
+    detail: str | None = None
+
+
+class ManualBlockRequest(BaseModel):
+    ip: str
+    ttl_seconds: int = 1800
+    reason: str = "manual block"
+
+
+class ManualUnblockRequest(BaseModel):
+    ip: str
+    reason: str = "manual unblock"

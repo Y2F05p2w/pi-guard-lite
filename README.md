@@ -36,6 +36,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 文档：
 
 - `docs/部署说明.md`
+- `docs/FluentBit真机接入说明.md`
 - `docs/使用说明.md`
 - `docs/模型训练与调优说明.md`
 - `docs/排障说明.md`
@@ -55,6 +56,9 @@ python scripts\create_demo_models.py
 python scripts\train_models.py tests\samples\training_features.csv --out-dir models\trained --register --version sample-v1
 python scripts\import_model.py anomaly models\anomaly_model.pkl --version demo-anomaly
 python scripts\check_executor.py --test-ip 203.0.113.200 --ttl 60
+bash scripts/bootstrap_rpi.sh
+bash scripts/install_systemd.sh
+bash scripts/status.sh
 bash scripts/start_fluentbit_bridge.sh
 python scripts\release_expired_blocks.py
 python scripts\run_scenario_tests.py

@@ -5,6 +5,7 @@ pydantic==2.11.7
 pydantic-settings==2.10.1
 PyYAML==6.0.2
 requests==2.32.4
+python-multipart==0.0.20
 paramiko==4.0.0
 scikit-learn==1.7.1
 lightgbm==4.6.0

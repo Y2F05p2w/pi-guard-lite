@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Pi-Guard Lite expired block release every minute
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+Unit=pi-guard-lite-release-expired.service
+
+[Install]
+WantedBy=timers.target

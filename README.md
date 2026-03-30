@@ -40,6 +40,7 @@ python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl --apply
 python scripts\run_pipeline_service.py --source suricata --file tests\samples\suricata_eve.jsonl --mode existing
 python scripts\run_pipeline_service.py --source auth.log --file tests\samples\auth.log --mode existing --no-policy --no-probe
 python scripts\create_demo_models.py
+python scripts\import_model.py anomaly models\anomaly_model.pkl --version demo-anomaly
 python scripts\release_expired_blocks.py
 python -m unittest tests\test_suricata_pipeline.py
 python -m unittest tests\test_policy_and_probe.py
@@ -48,6 +49,7 @@ python -m unittest tests\test_system_parser_extended.py
 python -m unittest tests\test_policy_service.py
 python -m unittest tests\test_baseline.py
 python -m unittest tests\test_ml_engine.py
+python -m unittest tests\test_model_manager.py
 ```
 
 ## 目录说明
@@ -59,8 +61,8 @@ data/        SQLite 和原始数据
 docs/        项目文档
 logs/        运行日志
 models/      模型文件
-scripts/     初始化和辅助脚本
-systemd/     Web 与流水线服务文件
+scripts/     初始化、运维和辅助脚本
+systemd/     Web、流水线、定时任务服务文件
 templates/   页面模板
 tests/       测试
 ```

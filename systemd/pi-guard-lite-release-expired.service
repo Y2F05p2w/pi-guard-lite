@@ -1,0 +1,8 @@
+[Unit]
+Description=Pi-Guard Lite Release Expired Blocks
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/pi-guard-lite
+ExecStart=/opt/pi-guard-lite/.venv/bin/python scripts/release_expired_blocks.py

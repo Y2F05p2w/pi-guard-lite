@@ -10,4 +10,5 @@ data/raw/*.log
 logs/*.log
 *.joblib
 models/*.pkl
+models/imported/
 .DS_Store

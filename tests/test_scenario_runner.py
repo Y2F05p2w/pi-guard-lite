@@ -7,10 +7,12 @@ from app.collector.suricata_reader import SuricataFileReader
 from app.common.db import get_connection, init_db
 from app.policy.pipeline import PipelineProcessor
 from app.policy.repository import list_blocklist, list_policies
+from tests.test_helpers import cleanup_isolated_db, setup_isolated_db
 
 
 class ScenarioRunnerTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        setup_isolated_db(self.__class__.__name__)
         init_db()
         with get_connection() as conn:
             for table in (
@@ -24,6 +26,9 @@ class ScenarioRunnerTestCase(unittest.TestCase):
             ):
                 conn.execute(f"DELETE FROM {table}")
             conn.commit()
+
+    def tearDown(self) -> None:
+        cleanup_isolated_db()
 
     def test_suricata_critical_event_creates_policy(self) -> None:
         processor = PipelineProcessor()

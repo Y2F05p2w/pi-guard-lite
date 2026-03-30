@@ -5,15 +5,20 @@ import unittest
 from app.common.db import get_connection, init_db
 from app.policy.repository import list_blocklist, list_policies
 from app.policy.service import PolicyService
+from tests.test_helpers import cleanup_isolated_db, setup_isolated_db
 
 
 class PolicyServiceTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        setup_isolated_db(self.__class__.__name__)
         init_db()
         with get_connection() as conn:
             for table in ("policy", "blocklist", "probe_result", "audit_log"):
                 conn.execute(f"DELETE FROM {table}")
             conn.commit()
+
+    def tearDown(self) -> None:
+        cleanup_isolated_db()
 
     def test_manual_block_and_unblock_in_dry_run(self) -> None:
         service = PolicyService()

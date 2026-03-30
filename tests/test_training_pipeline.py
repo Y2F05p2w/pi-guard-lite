@@ -8,10 +8,12 @@ from unittest.mock import patch
 from app.common.schemas import FeatureVector
 from app.detector.ml_engine import MLInferenceEngine
 from app.detector.training import load_training_dataset, train_models
+from tests.test_helpers import cleanup_isolated_db, setup_isolated_db
 
 
 class TrainingPipelineTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        setup_isolated_db(self.__class__.__name__)
         self.tmpdir = Path(__file__).parent / "_tmp_training"
         if self.tmpdir.exists():
             shutil.rmtree(self.tmpdir, ignore_errors=True)
@@ -19,6 +21,7 @@ class TrainingPipelineTestCase(unittest.TestCase):
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tmpdir, ignore_errors=True)
+        cleanup_isolated_db()
 
     def test_load_training_dataset(self) -> None:
         path = Path(__file__).parent / "samples" / "training_features.csv"

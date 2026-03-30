@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -8,6 +9,13 @@ from app.common.config import PROJECT_ROOT, get_settings, resolve_path
 
 
 def get_db_path() -> Path:
+    env_override = os.environ.get("PI_GUARD_DB_PATH")
+    if env_override:
+        db_path = Path(env_override)
+        if not db_path.is_absolute():
+            db_path = PROJECT_ROOT / db_path
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        return db_path
     settings = get_settings()
     db_path = resolve_path(settings["paths"].get("database", "data/pi_guard.db"))
     db_path.parent.mkdir(parents=True, exist_ok=True)

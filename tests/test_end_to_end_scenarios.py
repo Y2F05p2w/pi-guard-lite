@@ -9,10 +9,12 @@ from app.collector.system_reader import TextLogFileReader
 from app.common.db import get_connection, init_db
 from app.policy.pipeline import PipelineProcessor
 from app.policy.repository import list_blocklist, list_policies
+from tests.test_helpers import cleanup_isolated_db, setup_isolated_db
 
 
 class EndToEndScenariosTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        setup_isolated_db(self.__class__.__name__)
         init_db()
         with get_connection() as conn:
             for table in (
@@ -26,6 +28,9 @@ class EndToEndScenariosTestCase(unittest.TestCase):
             ):
                 conn.execute(f"DELETE FROM {table}")
             conn.commit()
+
+    def tearDown(self) -> None:
+        cleanup_isolated_db()
 
     def test_suricata_critical_alert_generates_block_policy(self) -> None:
         sample = Path(__file__).parent / "samples" / "suricata_eve.jsonl"

@@ -5,14 +5,19 @@ import unittest
 from app.common.db import get_connection, init_db
 from app.common.schemas import FeatureVector, SecurityEvent
 from app.detector.baseline import BaselineEngine
+from tests.test_helpers import cleanup_isolated_db, setup_isolated_db
 
 
 class BaselineEngineTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        setup_isolated_db(self.__class__.__name__)
         init_db()
         with get_connection() as conn:
             conn.execute("DELETE FROM baseline_profile")
             conn.commit()
+
+    def tearDown(self) -> None:
+        cleanup_isolated_db()
 
     def test_baseline_marks_new_source_then_learns(self) -> None:
         engine = BaselineEngine()

@@ -8,10 +8,12 @@ from pathlib import Path
 from app.common.db import get_connection, init_db
 from app.detector.demo_models import DemoAnomalyModel
 from app.detector.model_manager import ModelManager
+from tests.test_helpers import cleanup_isolated_db, cleanup_temp_dirs, setup_isolated_db
 
 
 class ModelManagerTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        setup_isolated_db(self.__class__.__name__)
         init_db()
         with get_connection() as conn:
             conn.execute("DELETE FROM model_version")
@@ -28,6 +30,8 @@ class ModelManagerTestCase(unittest.TestCase):
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tmpdir, ignore_errors=True)
+        cleanup_temp_dirs(Path("models/imported"), Path("models/anomaly_model.pkl"), Path("models/classifier_model.pkl"))
+        cleanup_isolated_db()
 
     def test_import_and_activate_model(self) -> None:
         source = self.tmpdir / "demo.pkl"

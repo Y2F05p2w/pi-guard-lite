@@ -13,4 +13,8 @@ models/*
 !models/.gitkeep
 models/*.pkl
 models/imported/
+tests/_tmp_db/
+tests/_tmp_ml_engine/
+tests/_tmp_model_manager/
+tests/_tmp_training/
 .DS_Store

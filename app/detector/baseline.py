@@ -67,7 +67,7 @@ class BaselineEngine:
         dst_ports = [str(event.dst_port)] if event.dst_port is not None else []
         conn.execute(
             """
-            INSERT INTO baseline_profile (
+            INSERT OR IGNORE INTO baseline_profile (
                 profile_key, total_events, event_types_json, active_hours_json,
                 dst_ips_json, dst_ports_json, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?)

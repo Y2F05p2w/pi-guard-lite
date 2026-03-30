@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Pi-Guard Lite runtime data cleanup daily
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1d
+Unit=pi-guard-lite-cleanup.service
+
+[Install]
+WantedBy=timers.target

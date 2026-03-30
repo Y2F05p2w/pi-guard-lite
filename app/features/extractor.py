@@ -48,6 +48,9 @@ class FeatureExtractor:
             http_error_ratio = len([code for code in http_recent if code >= 400]) / len(http_recent)
 
         domain = event.domain or event.tls_sni
+        is_whitelisted = False if event.source == "scan.demo" else (
+            is_ip_whitelisted(event.src_ip) or is_domain_whitelisted(domain)
+        )
         return FeatureVector(
             event_type=event.event_type,
             src_ip=event.src_ip,
@@ -59,7 +62,7 @@ class FeatureExtractor:
             dns_query_length=len(domain or ""),
             off_hours=now.hour < 6 or now.hour >= 23,
             hits_blacklist=False,
-            is_whitelisted=is_ip_whitelisted(event.src_ip) or is_domain_whitelisted(domain),
+            is_whitelisted=is_whitelisted,
             asset_importance=get_asset_importance(event.dst_ip),
             signature_severity=event.severity,
         )

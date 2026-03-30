@@ -204,7 +204,7 @@ def notifications_view(request: Request) -> HTMLResponse:
     )
 
 
-@router.post("/notifications/test")
+@router.post("/notifications/test", response_model=None)
 async def notifications_test(request: Request) -> RedirectResponse | dict:
     notifier = Notifier()
     result = notifier.send(
@@ -241,7 +241,7 @@ def models_view(request: Request) -> HTMLResponse:
     )
 
 
-@router.post("/models/import")
+@router.post("/models/import", response_model=None)
 async def models_import(
     request: Request,
     model_name: str = Form(...),
@@ -272,7 +272,7 @@ async def models_import(
     return result
 
 
-@router.post("/models/activate")
+@router.post("/models/activate", response_model=None)
 async def models_activate(request: Request) -> RedirectResponse | dict:
     form = await request.form()
     model_name = str(form.get("model_name", ""))

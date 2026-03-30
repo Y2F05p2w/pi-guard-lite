@@ -41,6 +41,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 - `docs/使用说明.md`
 - `docs/模型训练与调优说明.md`
 - `docs/通知管理说明.md`
+- `docs/本机扫描演示说明.md`
 - `docs/排障说明.md`
 - `docs/场景测试说明.md`
 - `docs/联动设备调试清单.md`
@@ -73,6 +74,7 @@ python scripts\collect_runtime_report.py
 bash scripts/start_fluentbit_bridge.sh
 python scripts\release_expired_blocks.py
 python scripts\run_scenario_tests.py
+python scripts\run_live_scan_demo.py
 python scripts\run_false_positive_check.py
 python scripts\run_stability_check.py --iterations 10
 python -m unittest tests\test_suricata_pipeline.py
@@ -93,6 +95,7 @@ python -m unittest tests\test_false_positive_check.py
 python -m unittest tests\test_stability_runner.py
 python -m unittest tests\test_preflight.py
 python -m unittest tests\test_runtime_checks.py
+python -m unittest tests\test_scan_demo.py
 ```
 
 ## 目录说明

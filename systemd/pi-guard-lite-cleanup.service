@@ -1,0 +1,8 @@
+[Unit]
+Description=Pi-Guard Lite Cleanup Runtime Data
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/pi-guard-lite
+ExecStart=/opt/pi-guard-lite/.venv/bin/python scripts/cleanup_runtime_data.py

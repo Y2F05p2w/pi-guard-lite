@@ -8,6 +8,7 @@ paths:
   database: "data/pi_guard.db"
   logs_dir: "logs"
   raw_data_dir: "data/raw"
+  backups_dir: "backups"
   templates_dir: "templates"
 
 risk:
@@ -43,6 +44,12 @@ notifier:
   channel: "webhook"
   webhook_url: ""
   timeout_seconds: 3
+
+retention:
+  cleanup_enabled: true
+  raw_days: 7
+  log_days: 7
+  backup_days: 30
 
 ml:
   enabled: false

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from datetime import UTC, datetime
 
@@ -21,6 +22,35 @@ def parse_text_log(raw_event: RawInputEvent) -> SecurityEvent:
     source = raw_event.source
     message = str(raw_event.payload.get("message", ""))
     now = datetime.now(UTC)
+
+    if source == "scan.demo":
+        try:
+            payload = json.loads(message)
+            return SecurityEvent(
+                ts=now,
+                source=source,
+                event_type="system.scan_probe",
+                src_ip=str(payload.get("src_ip", "")) or None,
+                dst_ip=str(payload.get("dst_ip", "")) or None,
+                dst_port=int(payload.get("dst_port")) if payload.get("dst_port") is not None else None,
+                protocol=str(payload.get("protocol", "tcp")),
+                severity=2,
+                signature="local scan demo",
+                category="network",
+                raw_path=raw_event.raw_path,
+                metadata=payload,
+            )
+        except Exception:
+            return SecurityEvent(
+                ts=now,
+                source=source,
+                event_type="system.scan_probe",
+                severity=1,
+                signature="local scan demo",
+                category="network",
+                raw_path=raw_event.raw_path,
+                metadata={"message": message},
+            )
 
     if source == "auth.log":
         match = AUTH_FAILURE_RE.search(message)

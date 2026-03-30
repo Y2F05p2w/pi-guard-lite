@@ -43,10 +43,10 @@ def update_event_scores(event_id: int, result: RiskScoreResult) -> None:
         conn.execute(
             """
             UPDATE event
-            SET anomaly_score = ?, risk_score = ?, risk_level = ?
+            SET anomaly_score = ?, ml_score = ?, risk_score = ?, risk_level = ?
             WHERE id = ?
             """,
-            (result.anomaly_score, result.risk_score, result.risk_level, event_id),
+            (result.anomaly_score, result.ml_score, result.risk_score, result.risk_level, event_id),
         )
         conn.commit()
 
@@ -66,7 +66,7 @@ def list_events(limit: int = 50) -> list[dict[str, Any]]:
         rows = conn.execute(
             """
             SELECT id, ts, source, src_ip, dst_ip, event_type, severity,
-                   anomaly_score, risk_score, risk_level, raw_path
+                   anomaly_score, ml_score, risk_score, risk_level, raw_path
             FROM event
             ORDER BY id DESC
             LIMIT ?

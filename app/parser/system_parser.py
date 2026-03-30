@@ -7,9 +7,14 @@ from app.common.schemas import RawInputEvent, SecurityEvent
 
 
 AUTH_FAILURE_RE = re.compile(r"Failed password for (invalid user )?(?P<user>\S+) from (?P<src_ip>\d+\.\d+\.\d+\.\d+)")
+AUTH_SUCCESS_RE = re.compile(r"Accepted password for (?P<user>\S+) from (?P<src_ip>\d+\.\d+\.\d+\.\d+)")
 NGINX_ACCESS_RE = re.compile(
     r'(?P<src_ip>\d+\.\d+\.\d+\.\d+) - - \[(?P<ts>[^\]]+)\] "(?P<method>\S+) (?P<url>\S+) [^"]+" (?P<status>\d{3})'
 )
+NGINX_ERROR_RE = re.compile(r'client: (?P<src_ip>\d+\.\d+\.\d+\.\d+).*(?P<message>upstream|connect\(\) failed|permission denied)', re.IGNORECASE)
+SYSLOG_SSH_FAIL_RE = re.compile(r"sshd\[\d+\]: Failed password for (invalid user )?(?P<user>\S+) from (?P<src_ip>\d+\.\d+\.\d+\.\d+)")
+SYSLOG_SSH_ACCEPT_RE = re.compile(r"sshd\[\d+\]: Accepted password for (?P<user>\S+) from (?P<src_ip>\d+\.\d+\.\d+\.\d+)")
+SYSLOG_SUDO_RE = re.compile(r"sudo: +(?P<user>\S+) : .*COMMAND=(?P<command>.+)$")
 
 
 def parse_text_log(raw_event: RawInputEvent) -> SecurityEvent:
@@ -32,6 +37,20 @@ def parse_text_log(raw_event: RawInputEvent) -> SecurityEvent:
                 raw_path=raw_event.raw_path,
                 metadata={"message": message},
             )
+        match = AUTH_SUCCESS_RE.search(message)
+        if match:
+            return SecurityEvent(
+                ts=now,
+                source=source,
+                event_type="system.auth_success",
+                src_ip=match.group("src_ip"),
+                severity=0,
+                username=match.group("user"),
+                signature="Accepted password",
+                category="authentication",
+                raw_path=raw_event.raw_path,
+                metadata={"message": message},
+            )
 
     if source == "nginx.access":
         match = NGINX_ACCESS_RE.search(message)
@@ -47,6 +66,64 @@ def parse_text_log(raw_event: RawInputEvent) -> SecurityEvent:
                 http_status=int(match.group("status")),
                 raw_path=raw_event.raw_path,
                 metadata={"message": message},
+            )
+
+    if source == "nginx.error":
+        match = NGINX_ERROR_RE.search(message)
+        if match:
+            return SecurityEvent(
+                ts=now,
+                source=source,
+                event_type="system.nginx_error",
+                src_ip=match.group("src_ip"),
+                severity=2,
+                signature="nginx error",
+                category="http",
+                raw_path=raw_event.raw_path,
+                metadata={"message": message},
+            )
+
+    if source == "syslog":
+        match = SYSLOG_SSH_FAIL_RE.search(message)
+        if match:
+            return SecurityEvent(
+                ts=now,
+                source=source,
+                event_type="system.auth_failure",
+                src_ip=match.group("src_ip"),
+                severity=2,
+                username=match.group("user"),
+                signature="Failed password",
+                category="authentication",
+                raw_path=raw_event.raw_path,
+                metadata={"message": message},
+            )
+        match = SYSLOG_SSH_ACCEPT_RE.search(message)
+        if match:
+            return SecurityEvent(
+                ts=now,
+                source=source,
+                event_type="system.auth_success",
+                src_ip=match.group("src_ip"),
+                severity=0,
+                username=match.group("user"),
+                signature="Accepted password",
+                category="authentication",
+                raw_path=raw_event.raw_path,
+                metadata={"message": message},
+            )
+        match = SYSLOG_SUDO_RE.search(message)
+        if match:
+            return SecurityEvent(
+                ts=now,
+                source=source,
+                event_type="system.privilege_use",
+                severity=1,
+                username=match.group("user"),
+                signature="sudo command",
+                category="privilege",
+                raw_path=raw_event.raw_path,
+                metadata={"message": message, "command": match.group("command")},
             )
 
     return SecurityEvent(

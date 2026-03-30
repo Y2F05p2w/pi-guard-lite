@@ -5,8 +5,9 @@ from typing import Iterable
 from app.collector.raw_store import append_raw_event
 from app.common.config import get_settings
 from app.common.event_store import insert_audit_log, insert_event, insert_feature, update_event_scores
-from app.common.schemas import RawInputEvent, RiskScoreResult, SecurityEvent
+from app.common.schemas import RawInputEvent, SecurityEvent
 from app.detector.baseline import BaselineEngine
+from app.detector.ml_engine import MLInferenceEngine
 from app.detector.rule_engine import RuleEngine
 from app.features.extractor import FeatureExtractor
 from app.parser.suricata_parser import parse_suricata_event
@@ -22,6 +23,7 @@ class PipelineProcessor:
         settings = get_settings()
         self.extractor = FeatureExtractor()
         self.baseline = BaselineEngine()
+        self.ml_engine = MLInferenceEngine()
         self.rule_engine = RuleEngine()
         self.policy_generator = PolicyGenerator()
         self.policy_service = PolicyService()
@@ -44,7 +46,8 @@ class PipelineProcessor:
         features = self.extractor.extract(event)
         features = self.baseline.enrich(event, features)
         matches = self.rule_engine.evaluate(event, features)
-        risk = self.scorer.score(event, features, matches)
+        ml_result = self.ml_engine.infer(features)
+        risk = self.scorer.score(event, features, matches, ml_result=ml_result)
 
         event_id = insert_event(event)
         insert_feature(event_id, features)
@@ -71,6 +74,7 @@ class PipelineProcessor:
             "features": features.model_dump(),
             "risk": risk.model_dump(),
             "matches": [match.model_dump() for match in matches],
+            "ml": ml_result.model_dump(),
             "decision": decision_payload,
             "execution": execution_payload,
             "rollback": rollback_payload,

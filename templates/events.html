@@ -7,10 +7,10 @@
   <h1>事件列表</h1>
   <div class="nav"><a href="/">首页</a><a href="/policies/view">策略</a><a href="/blocklist/view">黑名单</a><a href="/manual/view">手工操作</a></div>
   <table>
-    <thead><tr><th>ID</th><th>时间</th><th>来源</th><th>类型</th><th>源 IP</th><th>目的 IP</th><th>风险</th></tr></thead>
+    <thead><tr><th>ID</th><th>时间</th><th>来源</th><th>类型</th><th>源 IP</th><th>目的 IP</th><th>异常分</th><th>ML分</th><th>风险</th></tr></thead>
     <tbody>
       {% for item in items %}
-      <tr><td>{{ item.id }}</td><td>{{ item.ts }}</td><td>{{ item.source }}</td><td>{{ item.event_type }}</td><td>{{ item.src_ip or "-" }}</td><td>{{ item.dst_ip or "-" }}</td><td>{{ item.risk_level }} / {{ item.risk_score }}</td></tr>
+      <tr><td>{{ item.id }}</td><td>{{ item.ts }}</td><td>{{ item.source }}</td><td>{{ item.event_type }}</td><td>{{ item.src_ip or "-" }}</td><td>{{ item.dst_ip or "-" }}</td><td>{{ item.anomaly_score }}</td><td>{{ item.ml_score }}</td><td>{{ item.risk_level }} / {{ item.risk_score }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

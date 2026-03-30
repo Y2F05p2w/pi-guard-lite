@@ -9,4 +9,5 @@ data/raw/*.jsonl
 data/raw/*.log
 logs/*.log
 *.joblib
+models/*.pkl
 .DS_Store

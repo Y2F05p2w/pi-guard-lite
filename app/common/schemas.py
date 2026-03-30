@@ -81,9 +81,18 @@ class RuleMatch(BaseModel):
 
 class RiskScoreResult(BaseModel):
     anomaly_score: float = 0.0
+    ml_score: float = 0.0
     risk_score: float = 0.0
     risk_level: str = "low"
     reasons: list[str] = Field(default_factory=list)
+
+
+class MLInferenceResult(BaseModel):
+    enabled: bool = False
+    model_loaded: bool = False
+    anomaly_score: float = 0.0
+    classifier_score: float = 0.0
+    reason: str = ""
 
 
 class PolicyDecision(BaseModel):

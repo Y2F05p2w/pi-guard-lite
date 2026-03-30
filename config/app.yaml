@@ -28,3 +28,8 @@ probe:
 
 notifier:
   enabled: false
+
+ml:
+  enabled: false
+  anomaly_model_path: "models/anomaly_model.pkl"
+  classifier_model_path: "models/classifier_model.pkl"

@@ -11,6 +11,7 @@ from app.common.config import get_settings, resolve_path
 from app.common.db import get_connection
 from app.common.event_store import list_events
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
+from app.detector.ml_engine import MLInferenceEngine
 from app.executor.factory import get_executor
 from app.policy.repository import list_blocklist, list_policies, list_probe_results
 from app.policy.service import PolicyService
@@ -136,6 +137,16 @@ def executor_check() -> dict:
 def run_probe() -> list[dict]:
     checker = ProbeChecker()
     return [item.model_dump() for item in checker.run_default_targets()]
+
+
+@router.get("/ml/status")
+def ml_status() -> dict:
+    engine = MLInferenceEngine()
+    return {
+        "enabled": engine.enabled,
+        "anomaly_model_loaded": engine.anomaly_model is not None,
+        "classifier_model_loaded": engine.classifier_model is not None,
+    }
 
 
 @router.post("/manual/block")

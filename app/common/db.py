@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 
 from app.common.config import PROJECT_ROOT, get_settings, resolve_path
@@ -13,10 +14,14 @@ def get_db_path() -> Path:
     return db_path
 
 
-def get_connection() -> sqlite3.Connection:
+@contextmanager
+def get_connection():
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 def init_db() -> None:
@@ -27,6 +32,7 @@ def init_db() -> None:
         conn.executescript(schema)
         _ensure_column(conn, "event", "source", "TEXT DEFAULT 'unknown'")
         _ensure_column(conn, "event", "risk_level", "TEXT DEFAULT 'low'")
+        _ensure_column(conn, "event", "ml_score", "REAL DEFAULT 0")
         conn.commit()
 
 

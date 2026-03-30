@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.common.schemas import FeatureVector, RiskScoreResult, RuleMatch, SecurityEvent
+from app.common.schemas import FeatureVector, MLInferenceResult, RiskScoreResult, RuleMatch, SecurityEvent
 
 
 class RiskScorer:
@@ -13,6 +13,7 @@ class RiskScorer:
         event: SecurityEvent,
         features: FeatureVector,
         matches: list[RuleMatch],
+        ml_result: MLInferenceResult | None = None,
     ) -> RiskScoreResult:
         base_score = min(max(event.severity, 0) * 10, 30)
         rule_score = sum(match.score for match in matches)
@@ -21,6 +22,9 @@ class RiskScorer:
         blacklist_bonus = 20 if features.hits_blacklist else 0
         whitelist_penalty = 40 if features.is_whitelisted else 0
         baseline_bonus = min(features.baseline_score, 25)
+        ml_bonus = 0.0
+        if ml_result and ml_result.model_loaded:
+            ml_bonus = min((ml_result.anomaly_score * 0.15) + (ml_result.classifier_score * 0.25), 25.0)
 
         anomaly_score = round(
             min(
@@ -32,7 +36,7 @@ class RiskScorer:
             ),
             2,
         )
-        risk_score = base_score + rule_score + asset_bonus + behavior_bonus + blacklist_bonus + baseline_bonus
+        risk_score = base_score + rule_score + asset_bonus + behavior_bonus + blacklist_bonus + baseline_bonus + ml_bonus
         risk_score += anomaly_score * 0.15
         risk_score -= whitelist_penalty
         risk_score = round(max(0.0, min(100.0, risk_score)), 2)
@@ -48,7 +52,8 @@ class RiskScorer:
 
         return RiskScoreResult(
             anomaly_score=anomaly_score,
+            ml_score=round(ml_bonus, 2),
             risk_score=risk_score,
             risk_level=risk_level,
-            reasons=[match.reason for match in matches],
+            reasons=[match.reason for match in matches] + ([ml_result.reason] if ml_result and ml_result.reason else []),
         )

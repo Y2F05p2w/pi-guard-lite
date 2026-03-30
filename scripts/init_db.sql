@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS event (
     event_type TEXT NOT NULL,
     severity INTEGER DEFAULT 0,
     anomaly_score REAL DEFAULT 0,
+    ml_score REAL DEFAULT 0,
     risk_score REAL DEFAULT 0,
     risk_level TEXT DEFAULT 'low',
     raw_path TEXT,

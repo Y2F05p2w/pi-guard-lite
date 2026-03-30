@@ -30,6 +30,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 - `http://127.0.0.1:8080/blocklist/view`
 - `http://127.0.0.1:8080/probes/view`
 - `http://127.0.0.1:8080/manual/view`
+- `http://127.0.0.1:8080/ml/status`
 
 ## 样例流水线测试
 
@@ -38,12 +39,15 @@ python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl
 python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl --apply-policy --run-probe
 python scripts\run_pipeline_service.py --source suricata --file tests\samples\suricata_eve.jsonl --mode existing
 python scripts\run_pipeline_service.py --source auth.log --file tests\samples\auth.log --mode existing --no-policy --no-probe
+python scripts\create_demo_models.py
 python scripts\release_expired_blocks.py
 python -m unittest tests\test_suricata_pipeline.py
 python -m unittest tests\test_policy_and_probe.py
 python -m unittest tests\test_system_pipeline.py
+python -m unittest tests\test_system_parser_extended.py
 python -m unittest tests\test_policy_service.py
 python -m unittest tests\test_baseline.py
+python -m unittest tests\test_ml_engine.py
 ```
 
 ## 目录说明

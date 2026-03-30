@@ -37,7 +37,10 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 
 - `docs/部署说明.md`
 - `docs/使用说明.md`
+- `docs/模型训练与调优说明.md`
 - `docs/排障说明.md`
+- `docs/场景测试说明.md`
+- `docs/联动设备调试清单.md`
 - `docs/树莓派上线手册.md`
 
 ## 样例流水线测试
@@ -49,9 +52,12 @@ python scripts\run_pipeline_service.py --source suricata --file tests\samples\su
 python scripts\run_pipeline_service.py --source auth.log --file tests\samples\auth.log --mode existing --no-policy --no-probe
 Get-Content tests\samples\fluentbit_syslog.jsonl | python scripts\run_fluentbit_stdin.py --no-policy --no-probe
 python scripts\create_demo_models.py
+python scripts\train_models.py tests\samples\training_features.csv --out-dir models\trained --register --version sample-v1
 python scripts\import_model.py anomaly models\anomaly_model.pkl --version demo-anomaly
+python scripts\check_executor.py --test-ip 203.0.113.200 --ttl 60
 bash scripts/start_fluentbit_bridge.sh
 python scripts\release_expired_blocks.py
+python scripts\run_scenario_tests.py
 python -m unittest tests\test_suricata_pipeline.py
 python -m unittest tests\test_policy_and_probe.py
 python -m unittest tests\test_system_pipeline.py
@@ -63,6 +69,8 @@ python -m unittest tests\test_model_manager.py
 python -m unittest tests\test_fluentbit_input.py
 python -m unittest tests\test_risk_scoring_weights.py
 python -m unittest tests\test_pipeline_integration.py
+python -m unittest tests\test_training_pipeline.py
+python -m unittest tests\test_scenario_runner.py
 ```
 
 ## 目录说明

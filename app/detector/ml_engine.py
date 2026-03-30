@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import pickle
-from pathlib import Path
 from typing import Any
 
 from app.common.config import get_settings, resolve_path
 from app.common.schemas import FeatureVector, MLInferenceResult
+from app.detector.ml_features import feature_vector_to_list
 
 
 class MLInferenceEngine:
@@ -20,7 +20,7 @@ class MLInferenceEngine:
         if not self.enabled:
             return MLInferenceResult(enabled=False, model_loaded=False, reason="ml disabled")
 
-        vector = [self._feature_to_vector(features)]
+        vector = [feature_vector_to_list(features)]
         anomaly_score = 0.0
         classifier_score = 0.0
         loaded = False
@@ -51,25 +51,6 @@ class MLInferenceEngine:
             reason=", ".join(reasons),
         )
 
-    def _feature_to_vector(self, features: FeatureVector) -> list[float]:
-        return [
-            float(features.request_count_1m),
-            float(features.same_event_count_10m),
-            float(features.unique_dst_ports_5m),
-            float(features.login_failures_5m),
-            float(features.http_error_ratio_5m),
-            float(features.dns_query_length),
-            1.0 if features.off_hours else 0.0,
-            1.0 if features.is_whitelisted else 0.0,
-            float(features.asset_importance),
-            float(features.signature_severity),
-            float(features.baseline_score),
-            1.0 if features.known_source else 0.0,
-            1.0 if features.known_event_type else 0.0,
-            1.0 if features.new_destination_ip else 0.0,
-            1.0 if features.new_destination_port else 0.0,
-        ]
-
     def _load_model(self, raw_path: str | None) -> Any | None:
         if not self.enabled or not raw_path:
             return None
@@ -83,7 +64,11 @@ class MLInferenceEngine:
 
                 return joblib.load(path)
             except Exception:
-                return None
+                try:
+                    with path.open("rb") as f:
+                        return pickle.load(f)
+                except Exception:
+                    return None
 
         try:
             with path.open("rb") as f:

@@ -1,0 +1,11 @@
+request_count_1m,same_event_count_10m,unique_dst_ports_5m,login_failures_5m,http_error_ratio_5m,dns_query_length,off_hours,is_whitelisted,asset_importance,signature_severity,baseline_score,known_source,known_event_type,new_destination_ip,new_destination_port,label
+1,1,1,0,0.0,8,0,0,3,1,0,1,1,0,0,0
+2,1,1,0,0.0,10,0,0,3,1,0,1,1,0,0,0
+3,2,1,0,0.0,12,0,0,3,1,1,1,1,0,0,0
+4,2,2,1,0.1,14,0,0,3,1,2,1,1,0,0,0
+5,3,2,1,0.2,15,0,0,4,2,3,1,1,0,0,0
+20,5,10,8,0.7,45,1,0,5,3,12,1,0,1,1,1
+30,8,12,12,0.8,55,1,0,5,3,18,0,0,1,1,1
+18,6,9,7,0.6,48,1,0,4,2,10,1,0,1,1,1
+25,7,11,9,0.9,60,1,0,5,3,16,0,0,1,1,1
+15,5,8,6,0.5,40,0,0,4,2,9,1,0,1,0,1

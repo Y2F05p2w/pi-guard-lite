@@ -9,6 +9,8 @@ data/raw/*.jsonl
 data/raw/*.log
 logs/*.log
 *.joblib
+models/*
+!models/.gitkeep
 models/*.pkl
 models/imported/
 .DS_Store

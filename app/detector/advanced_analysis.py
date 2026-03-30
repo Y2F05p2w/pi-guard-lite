@@ -136,10 +136,18 @@ class AdvancedAnalyzer:
 
     def _detect_sample(self, event: SecurityEvent) -> list[AdvancedFinding]:
         if event.source != "sample.report":
-            return []
-        entropy = float(event.metadata.get("entropy", 0.0))
+            if event.source != "sample.sandbox":
+                return []
+        entropy = float(event.metadata.get("entropy", 0.0) or 0.0)
         file_name = str(event.metadata.get("file_name", "")).lower()
-        suspicious = entropy >= 7.0 or file_name.endswith((".ps1", ".js", ".vbs", ".exe", ".dll"))
+        yara_hits = event.metadata.get("yara_hits") or []
+        sandbox_verdict = str(event.metadata.get("sandbox_verdict", "")).lower()
+        suspicious = (
+            entropy >= 7.0
+            or file_name.endswith((".ps1", ".js", ".vbs", ".exe", ".dll"))
+            or bool(yara_hits)
+            or sandbox_verdict in {"malicious", "high_risk", "suspicious"}
+        )
         if suspicious:
             event.metadata["suspicious_sample"] = True
             return [
@@ -149,10 +157,11 @@ class AdvancedAnalyzer:
                     category="sample",
                     severity=2,
                     confidence=0.68,
-                    description="样本熵值较高或扩展名敏感，建议进一步静态/动态分析。",
+                    description="样本熵值较高、YARA 命中或沙箱结论异常，建议进一步静态/动态分析。",
                     metadata=event.metadata,
                 )
             ]
+            return []
         return []
 
     def _build_graph(

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sqlite3
 import tempfile
 from urllib.parse import quote
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from app.common.assets import list_assets
@@ -21,6 +22,7 @@ from app.executor.factory import get_executor
 from app.policy.repository import list_blocklist, list_policies, list_probe_results
 from app.policy.service import PolicyService
 from app.probe.checker import ProbeChecker
+from app.web.auth import get_auth_config, get_cookie_name, verify_credentials
 
 
 router = APIRouter()
@@ -35,6 +37,52 @@ def _count(conn: sqlite3.Connection, table: str) -> int:
     return int(row["count"]) if row else 0
 
 
+def _render_page(request: Request, template_name: str, active_nav: str, **context) -> HTMLResponse:
+    ctx = {
+        "settings": settings,
+        "request": request,
+        "active_nav": active_nav,
+        "current_user": request.cookies.get(get_cookie_name(), ""),
+    }
+    ctx.update(context)
+    return templates.TemplateResponse(request=request, name=template_name, context=ctx)
+
+
+@router.get("/login", response_class=HTMLResponse)
+def login_page(request: Request) -> HTMLResponse:
+    auth = get_auth_config()
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={
+            "request": request,
+            "settings": settings,
+            "title": auth.get("login_title", "Pi-Guard Lite"),
+            "message": request.query_params.get("message", ""),
+        },
+    )
+
+
+@router.post("/login", response_model=None)
+async def login_submit(request: Request) -> Response:
+    form = await request.form()
+    username = str(form.get("username", ""))
+    password = str(form.get("password", ""))
+    if not verify_credentials(username, password):
+        msg = quote("登录失败：用户名或密码错误")
+        return RedirectResponse(url=f"/login?message={msg}", status_code=303)
+    response = RedirectResponse(url="/", status_code=303)
+    response.set_cookie(get_cookie_name(), username, httponly=True, samesite="lax")
+    return response
+
+
+@router.get("/logout", response_model=None)
+def logout() -> Response:
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie(get_cookie_name())
+    return response
+
+
 @router.get("/", response_class=HTMLResponse)
 def index(request: Request) -> HTMLResponse:
     with get_connection() as conn:
@@ -45,15 +93,13 @@ def index(request: Request) -> HTMLResponse:
         }
     recent_events = list_events(limit=10)
     recent_policies = list_policies(limit=10)
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={
-            "stats": stats,
-            "settings": settings,
-            "recent_events": recent_events,
-            "recent_policies": recent_policies,
-        },
+    return _render_page(
+        request,
+        "index.html",
+        "dashboard",
+        stats=stats,
+        recent_events=recent_events,
+        recent_policies=recent_policies,
     )
 
 
@@ -86,14 +132,18 @@ def analysis_event(event_id: int) -> dict:
 @router.get("/analysis/view/{event_id}", response_class=HTMLResponse)
 def analysis_view(request: Request, event_id: int) -> HTMLResponse:
     result = get_analysis_result(event_id)
-    return templates.TemplateResponse(
-        request=request,
-        name="analysis.html",
-        context={
-            "settings": settings,
-            "event_id": event_id,
-            "result": result,
-        },
+    parsed_result = None
+    if result:
+        parsed_result = dict(result)
+        for key in ("findings_json", "mitre_json", "impacted_assets_json"):
+            parsed_result[key] = json.loads(parsed_result[key] or "[]")
+        parsed_result["graph_json"] = json.loads(parsed_result["graph_json"] or "{}")
+    return _render_page(
+        request,
+        "analysis.html",
+        "analysis",
+        event_id=event_id,
+        result=parsed_result,
     )
 
 
@@ -114,29 +164,17 @@ def assets() -> list[dict]:
 
 @router.get("/events/view", response_class=HTMLResponse)
 def events_view(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request=request,
-        name="events.html",
-        context={"items": list_events(limit=100), "settings": settings},
-    )
+    return _render_page(request, "events.html", "events", items=list_events(limit=100))
 
 
 @router.get("/policies/view", response_class=HTMLResponse)
 def policies_view(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request=request,
-        name="policies.html",
-        context={"items": list_policies(limit=100), "settings": settings},
-    )
+    return _render_page(request, "policies.html", "policies", items=list_policies(limit=100))
 
 
 @router.get("/blocklist/view", response_class=HTMLResponse)
 def blocklist_view(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request=request,
-        name="blocklist.html",
-        context={"items": list_blocklist(limit=100), "settings": settings},
-    )
+    return _render_page(request, "blocklist.html", "blocklist", items=list_blocklist(limit=100))
 
 
 @router.get("/probes/view", response_class=HTMLResponse)
@@ -147,20 +185,12 @@ def probes_view(request: Request) -> HTMLResponse:
         "success": len([item for item in items if item["result"] == "success"]),
         "failed": len([item for item in items if item["result"] != "success"]),
     }
-    return templates.TemplateResponse(
-        request=request,
-        name="probes.html",
-        context={"items": items, "summary": summary, "settings": settings},
-    )
+    return _render_page(request, "probes.html", "probes", items=items, summary=summary)
 
 
 @router.get("/assets/view", response_class=HTMLResponse)
 def assets_view(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request=request,
-        name="assets.html",
-        context={"items": list_assets(), "settings": settings},
-    )
+    return _render_page(request, "assets.html", "assets", items=list_assets())
 
 
 @router.get("/manual/view", response_class=HTMLResponse)
@@ -168,17 +198,15 @@ def manual_view(request: Request) -> HTMLResponse:
     message = request.query_params.get("message", "")
     level = request.query_params.get("level", "info")
     executor_result = get_executor().check_connection().model_dump()
-    return templates.TemplateResponse(
-        request=request,
-        name="manual.html",
-        context={
-            "settings": settings,
-            "message": message,
-            "level": level,
-            "executor_result": executor_result,
-            "recent_policies": list_policies(limit=10),
-            "recent_blocklist": list_blocklist(limit=10),
-        },
+    return _render_page(
+        request,
+        "manual.html",
+        "manual",
+        message=message,
+        level=level,
+        executor_result=executor_result,
+        recent_policies=list_policies(limit=10),
+        recent_blocklist=list_blocklist(limit=10),
     )
 
 
@@ -212,15 +240,13 @@ def notifications_status() -> dict:
 @router.get("/notifications/view", response_class=HTMLResponse)
 def notifications_view(request: Request) -> HTMLResponse:
     notifier = Notifier()
-    return templates.TemplateResponse(
-        request=request,
-        name="notifications.html",
-        context={
-            "settings": settings,
-            "message": request.query_params.get("message", ""),
-            "level": request.query_params.get("level", "info"),
-            "status": notifier.status(),
-        },
+    return _render_page(
+        request,
+        "notifications.html",
+        "notifications",
+        message=request.query_params.get("message", ""),
+        level=request.query_params.get("level", "info"),
+        status=notifier.status(),
     )
 
 
@@ -248,16 +274,14 @@ def model_versions() -> list[dict]:
 @router.get("/models/view", response_class=HTMLResponse)
 def models_view(request: Request) -> HTMLResponse:
     manager = ModelManager()
-    return templates.TemplateResponse(
-        request=request,
-        name="models.html",
-        context={
-            "settings": settings,
-            "message": request.query_params.get("message", ""),
-            "level": request.query_params.get("level", "info"),
-            "status": manager.get_status(),
-            "grouped_versions": manager.grouped_versions(),
-        },
+    return _render_page(
+        request,
+        "models.html",
+        "models",
+        message=request.query_params.get("message", ""),
+        level=request.query_params.get("level", "info"),
+        status=manager.get_status(),
+        grouped_versions=manager.grouped_versions(),
     )
 
 

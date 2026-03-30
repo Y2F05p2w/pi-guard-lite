@@ -1,73 +1,66 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ settings.app.name }}</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 24px; background: #f5f7fb; color: #222; }
-    .nav a { margin-right: 14px; color: #0b57d0; text-decoration: none; }
-    .grid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 16px; margin: 20px 0; }
-    .card { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
-    .value { font-size: 28px; font-weight: bold; margin-top: 8px; }
-    .muted { color: #666; }
-    table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 12px; }
-    th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
-    h2 { margin-top: 28px; }
-  </style>
-</head>
-<body>
-  <h1>{{ settings.app.name }}</h1>
-  <div class="nav">
-    <a href="/">首页</a>
-    <a href="/events/view">事件</a>
-    <a href="/policies/view">策略</a>
-    <a href="/blocklist/view">黑名单</a>
-    <a href="/assets/view">资产</a>
-    <a href="/probes/view">探测</a>
-    <a href="/manual/view">手工操作</a>
-    <a href="/models/view">模型管理</a>
-    <a href="/notifications/view">通知管理</a>
-    <a href="/ml/status">模型状态</a>
+{% extends "base.html" %}
+{% block title %}控制台总览{% endblock %}
+{% block page_title %}控制台总览{% endblock %}
+{% block content %}
+<p class="subtle">借鉴企业级防火墙控制台风格，统一展示事件、策略、黑名单、高级分析和运营操作。</p>
+
+<div class="grid">
+  <div class="card"><div class="stat-title">事件总数</div><div class="stat-value">{{ stats.events }}</div></div>
+  <div class="card"><div class="stat-title">策略总数</div><div class="stat-value">{{ stats.policies }}</div></div>
+  <div class="card"><div class="stat-title">封禁总数</div><div class="stat-value">{{ stats.blocked }}</div></div>
+</div>
+
+<div class="grid" style="margin-top:16px">
+  <div class="card">
+    <h3>高级攻击分析</h3>
+    <p class="subtle">查看 MITRE 映射、攻击图谱、受影响资产与专项分析结果。</p>
+    <a class="btn" href="/analysis/view/1">进入分析中心</a>
   </div>
-  <p class="muted">当前已接入样例检测、策略执行、探测和回滚能力，可直接查看数据与手工操作。</p>
-
-  <div class="grid">
-    <div class="card"><div>事件总数</div><div class="value">{{ stats.events }}</div></div>
-    <div class="card"><div>策略总数</div><div class="value">{{ stats.policies }}</div></div>
-    <div class="card"><div>封禁总数</div><div class="value">{{ stats.blocked }}</div></div>
+  <div class="card">
+    <h3>模型管理</h3>
+    <p class="subtle">导入、激活并验证异常模型与分类模型。</p>
+    <a class="btn" href="/models/view">打开模型管理</a>
   </div>
+  <div class="card">
+    <h3>手工处置</h3>
+    <p class="subtle">手工封禁、解封并联动执行器。</p>
+    <a class="btn" href="/manual/view">打开手工处置</a>
+  </div>
+</div>
 
-  <h2>最近事件</h2>
-  <table>
-    <thead><tr><th>ID</th><th>时间</th><th>类型</th><th>源 IP</th><th>风险</th></tr></thead>
-    <tbody>
-      {% for item in recent_events %}
-      <tr>
-        <td>{{ item.id }}</td>
-        <td>{{ item.ts }}</td>
-        <td>{{ item.event_type }}</td>
-        <td>{{ item.src_ip or "-" }}</td>
-        <td>{{ item.risk_level }} / {{ item.risk_score }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h2>最近策略</h2>
-  <table>
-    <thead><tr><th>ID</th><th>动作</th><th>目标</th><th>状态</th><th>TTL</th></tr></thead>
-    <tbody>
-      {% for item in recent_policies %}
-      <tr>
-        <td>{{ item.id }}</td>
-        <td>{{ item.action }}</td>
-        <td>{{ item.target }}</td>
-        <td>{{ item.status }}</td>
-        <td>{{ item.ttl }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</body>
-</html>
+<div class="split" style="margin-top:16px">
+  <div class="card">
+    <h3>最近事件</h3>
+    <table>
+      <thead><tr><th>ID</th><th>类型</th><th>源 IP</th><th>风险</th><th>分析</th></tr></thead>
+      <tbody>
+        {% for item in recent_events %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.event_type }}</td>
+          <td>{{ item.src_ip or "-" }}</td>
+          <td><span class="tag {{ item.risk_level }}">{{ item.risk_level }}</span> {{ item.risk_score }}</td>
+          <td><a href="/analysis/view/{{ item.id }}">查看</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>最近策略</h3>
+    <table>
+      <thead><tr><th>ID</th><th>动作</th><th>目标</th><th>状态</th></tr></thead>
+      <tbody>
+        {% for item in recent_policies %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.action }}</td>
+          <td>{{ item.target }}</td>
+          <td>{{ item.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

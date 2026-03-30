@@ -23,6 +23,7 @@ def _read_yaml(path: Path) -> dict[str, Any]:
 def get_settings() -> dict[str, Any]:
     settings = _read_yaml(CONFIG_FILE)
     settings.setdefault("app", {})
+    settings.setdefault("auth", {})
     settings.setdefault("paths", {})
     settings.setdefault("risk", {})
     settings.setdefault("probe", {})

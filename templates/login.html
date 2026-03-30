@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <style>
+    body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:radial-gradient(circle at top left,#18365b,#0f1f33 60%,#0b1625);min-height:100vh;display:grid;place-items:center}
+    .wrap{display:grid;grid-template-columns:1.1fr .9fr;max-width:1080px;width:100%;background:rgba(255,255,255,.04);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+    .hero{padding:48px;color:#fff;background:linear-gradient(180deg,rgba(75,163,255,.15),rgba(255,255,255,0))}
+    .hero h1{font-size:34px;margin:0 0 12px 0}
+    .hero p{color:rgba(255,255,255,.76);line-height:1.7}
+    .panel{background:#fff;padding:40px}
+    .panel h2{margin:0 0 20px 0;color:#172231}
+    label{display:block;font-size:13px;color:#64748b;margin-bottom:6px}
+    input{width:100%;padding:12px 14px;border:1px solid #dbe3ef;border-radius:12px;margin-bottom:16px;font:inherit}
+    button{width:100%;padding:12px 16px;border:none;border-radius:12px;background:#2d78f4;color:#fff;font-weight:600;cursor:pointer}
+    .msg{padding:10px 12px;background:#fee2e2;color:#991b1b;border-radius:10px;margin-bottom:14px}
+    .hint{margin-top:14px;color:#64748b;font-size:13px}
+    @media (max-width:900px){.wrap{grid-template-columns:1fr}.hero{display:none}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>{{ title }}</h1>
+      <p>借鉴企业级防火墙控制台风格的统一防御管理界面。支持事件分析、策略联动、模型管理、高级攻击分析与溯源视图。</p>
+      <p>默认演示账号：<strong>admin / admin</strong></p>
+    </div>
+    <div class="panel">
+      <h2>控制台登录</h2>
+      {% if message %}
+      <div class="msg">{{ message }}</div>
+      {% endif %}
+      <form method="post" action="/login">
+        <label>用户名</label>
+        <input name="username" value="admin" autocomplete="username">
+        <label>密码</label>
+        <input name="password" value="admin" type="password" autocomplete="current-password">
+        <button type="submit">登录</button>
+      </form>
+      <div class="hint">仅用于当前演示环境，后续建议在配置中修改默认口令。</div>
+    </div>
+  </div>
+</body>
+</html>

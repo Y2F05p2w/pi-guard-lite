@@ -4,6 +4,12 @@ app:
   port: 8080
   debug: true
 
+auth:
+  username: "admin"
+  password: "admin"
+  cookie_name: "pi_guard_auth"
+  login_title: "Pi-Guard Lite"
+
 paths:
   database: "data/pi_guard.db"
   logs_dir: "logs"

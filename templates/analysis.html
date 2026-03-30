@@ -1,53 +1,108 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <title>高级攻击分析</title>
-  <style>
-    body{font-family:Arial,sans-serif;margin:24px;background:#f5f7fb}
-    .nav a{margin-right:14px;color:#0b57d0;text-decoration:none}
-    .card{background:#fff;padding:18px;border-radius:10px;margin-top:16px}
-    table{width:100%;border-collapse:collapse;background:#fff;margin-top:12px}
-    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:top}
-    pre{white-space:pre-wrap;word-break:break-all;background:#f7f7f7;padding:12px;border-radius:8px}
-  </style>
-</head>
-<body>
-  <h1>高级攻击分析</h1>
-  <div class="nav">
-    <a href="/">首页</a><a href="/events/view">事件</a><a href="/policies/view">策略</a><a href="/models/view">模型管理</a>
+{% extends "base.html" %}
+{% block title %}高级攻击分析{% endblock %}
+{% block page_title %}高级攻击分析{% endblock %}
+{% block extra_head %}
+<style>
+  #graphCanvas{width:100%;height:440px;border:1px solid var(--border);border-radius:16px;background:#fff}
+  .mini-table{margin-top:16px}
+</style>
+{% endblock %}
+{% block content %}
+{% if not result %}
+<div class="card"><p>未找到 event_id={{ event_id }} 的分析结果。</p></div>
+{% else %}
+<div class="card">
+  <div class="kv">
+    <div>event_id</div><div>{{ result.event_id }}</div>
+    <div>summary</div><div>{{ result.summary }}</div>
+    <div>created_at</div><div>{{ result.created_at }}</div>
   </div>
+</div>
 
-  {% if not result %}
+<div class="split" style="margin-top:16px">
   <div class="card">
-    <p>未找到 event_id={{ event_id }} 的分析结果。</p>
+    <h3>Findings</h3>
+    <table class="mini-table">
+      <thead><tr><th>ID</th><th>名称</th><th>分类</th><th>置信度</th></tr></thead>
+      <tbody>
+        {% for item in result.findings_json %}
+        <tr><td>{{ item.finding_id }}</td><td>{{ item.name }}</td><td>{{ item.category }}</td><td>{{ item.confidence }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  {% else %}
   <div class="card">
-    <strong>event_id:</strong> {{ result.event_id }}<br>
-    <strong>summary:</strong> {{ result.summary }}<br>
-    <strong>created_at:</strong> {{ result.created_at }}
+    <h3>MITRE 映射</h3>
+    <table class="mini-table">
+      <thead><tr><th>Technique</th><th>名称</th><th>Tactic</th><th>置信度</th></tr></thead>
+      <tbody>
+        {% for item in result.mitre_json %}
+        <tr><td>{{ item.technique_id }}</td><td>{{ item.name }}</td><td>{{ item.tactic }}</td><td>{{ item.confidence }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+</div>
 
-  <div class="card">
-    <h2>Findings</h2>
-    <pre>{{ result.findings_json }}</pre>
-  </div>
+<div class="card" style="margin-top:16px">
+  <h3>攻击图谱</h3>
+  <svg id="graphCanvas" viewBox="0 0 900 440"></svg>
+</div>
 
-  <div class="card">
-    <h2>MITRE Mapping</h2>
-    <pre>{{ result.mitre_json }}</pre>
-  </div>
-
-  <div class="card">
-    <h2>Attack Graph</h2>
-    <pre>{{ result.graph_json }}</pre>
-  </div>
-
-  <div class="card">
-    <h2>Impacted Assets</h2>
-    <pre>{{ result.impacted_assets_json }}</pre>
-  </div>
-  {% endif %}
-</body>
-</html>
+<div class="card" style="margin-top:16px">
+  <h3>受影响资产</h3>
+  <div class="code">{{ result.impacted_assets_json }}</div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if result %}
+<script>
+const graph = {{ result.graph_json | tojson }};
+const svg = document.getElementById("graphCanvas");
+const nodes = graph.nodes || [];
+const edges = graph.edges || [];
+const centerX = 450;
+const centerY = 220;
+const radius = 150;
+const positions = {};
+nodes.forEach((node, i) => {
+  const angle = (Math.PI * 2 * i) / Math.max(nodes.length, 1);
+  positions[node.node_key] = {
+    x: centerX + Math.cos(angle) * radius,
+    y: centerY + Math.sin(angle) * radius
+  };
+});
+edges.forEach(edge => {
+  const src = positions[edge.src_key];
+  const dst = positions[edge.dst_key];
+  if (!src || !dst) return;
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", src.x);
+  line.setAttribute("y1", src.y);
+  line.setAttribute("x2", dst.x);
+  line.setAttribute("y2", dst.y);
+  line.setAttribute("stroke", "#8aa7d3");
+  line.setAttribute("stroke-width", "2");
+  svg.appendChild(line);
+});
+nodes.forEach(node => {
+  const pos = positions[node.node_key];
+  const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  circle.setAttribute("cx", pos.x);
+  circle.setAttribute("cy", pos.y);
+  circle.setAttribute("r", 26);
+  circle.setAttribute("fill", node.node_type === "mitre" ? "#2d78f4" : node.node_type === "finding" ? "#ef4444" : "#0f1f33");
+  svg.appendChild(circle);
+  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("x", pos.x);
+  text.setAttribute("y", pos.y + 44);
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("fill", "#172231");
+  text.setAttribute("font-size", "12");
+  text.textContent = node.label;
+  svg.appendChild(text);
+});
+</script>
+{% endif %}
+{% endblock %}

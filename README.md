@@ -21,6 +21,12 @@ pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
+默认登录：
+
+```text
+admin / admin
+```
+
 访问：
 
 - `http://127.0.0.1:8080/`
@@ -80,9 +86,11 @@ python scripts\run_live_scan_demo.py
 python scripts\run_false_positive_check.py
 python scripts\run_stability_check.py --iterations 10
 python -m unittest tests\test_suricata_pipeline.py
+python -m unittest tests\test_auth.py
 python -m unittest tests\test_policy_and_probe.py
 python -m unittest tests\test_system_pipeline.py
 python -m unittest tests\test_system_parser_extended.py
+python -m unittest tests\test_parser_extended_sources.py
 python -m unittest tests\test_policy_service.py
 python -m unittest tests\test_baseline.py
 python -m unittest tests\test_ml_engine.py

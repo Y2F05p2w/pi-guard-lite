@@ -52,25 +52,33 @@ def parse_text_log(raw_event: RawInputEvent) -> SecurityEvent:
                 metadata={"message": message},
             )
 
-    if source in {"edr.process", "sample.report"}:
+    if source in {"edr.process", "sample.report", "edr.sysmon", "sample.sandbox"}:
         try:
             payload = json.loads(message)
         except Exception:
             payload = {"message": message}
 
-        if source == "edr.process":
+        if source in {"edr.process", "edr.sysmon"}:
+            process_name = payload.get("process_name") or payload.get("Image") or payload.get("image")
+            command_line = payload.get("command_line") or payload.get("CommandLine") or payload.get("commandline")
+            parent_process = payload.get("parent_process_name") or payload.get("ParentImage") or payload.get("parent_image")
             return SecurityEvent(
                 ts=now,
                 source=source,
                 event_type="edr.process",
-                src_ip=str(payload.get("host_ip", "")) or None,
+                src_ip=str(payload.get("host_ip") or payload.get("HostIp") or payload.get("host_ip_address") or "" ) or None,
                 dst_ip=str(payload.get("dst_ip", "")) or None,
                 severity=int(payload.get("severity", 2)),
-                username=payload.get("user"),
-                signature=str(payload.get("process_name", "process_start")),
+                username=payload.get("user") or payload.get("User"),
+                signature=str(process_name or "process_start"),
                 category="process",
                 raw_path=raw_event.raw_path,
-                metadata=payload,
+                metadata={
+                    **payload,
+                    "process_name": process_name,
+                    "command_line": command_line,
+                    "parent_process_name": parent_process,
+                },
             )
 
         return SecurityEvent(
@@ -78,10 +86,16 @@ def parse_text_log(raw_event: RawInputEvent) -> SecurityEvent:
             source=source,
             event_type="sample.report",
             severity=int(payload.get("severity", 2)),
-            signature=str(payload.get("file_name", "sample")),
+            signature=str(payload.get("file_name") or payload.get("fileName") or "sample"),
             category="sample",
             raw_path=raw_event.raw_path,
-            metadata=payload,
+            metadata={
+                **payload,
+                "file_name": payload.get("file_name") or payload.get("fileName"),
+                "entropy": payload.get("entropy", payload.get("Entropy")),
+                "yara_hits": payload.get("yara_hits", payload.get("yaraHits", [])),
+                "sandbox_verdict": payload.get("sandbox_verdict", payload.get("verdict")),
+            },
         )
 
     if source == "auth.log":

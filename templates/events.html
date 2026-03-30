@@ -1,18 +1,27 @@
-<!doctype html>
-<html lang="zh-CN">
-<head><meta charset="utf-8"><title>事件列表</title>
-<style>body{font-family:Arial,sans-serif;margin:24px;background:#f5f7fb}.nav a{margin-right:14px;color:#0b57d0;text-decoration:none}table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}</style>
-</head>
-<body>
-  <h1>事件列表</h1>
-  <div class="nav"><a href="/">首页</a><a href="/policies/view">策略</a><a href="/blocklist/view">黑名单</a><a href="/manual/view">手工操作</a></div>
-  <table>
-    <thead><tr><th>ID</th><th>时间</th><th>来源</th><th>类型</th><th>源 IP</th><th>目的 IP</th><th>异常分</th><th>ML分</th><th>风险</th></tr></thead>
-    <tbody>
-      {% for item in items %}
-      <tr><td>{{ item.id }}</td><td>{{ item.ts }}</td><td>{{ item.source }}</td><td>{{ item.event_type }}</td><td>{{ item.src_ip or "-" }}</td><td>{{ item.dst_ip or "-" }}</td><td>{{ item.anomaly_score }}</td><td>{{ item.ml_score }}</td><td>{{ item.risk_level }} / {{ item.risk_score }}</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}事件中心{% endblock %}
+{% block page_title %}事件中心{% endblock %}
+{% block content %}
+<p class="subtle">统一展示流量、系统日志、EDR 与样本分析输入后的结构化事件。</p>
+<table>
+  <thead>
+    <tr><th>ID</th><th>时间</th><th>来源</th><th>类型</th><th>源IP</th><th>目的IP</th><th>异常分</th><th>ML分</th><th>风险</th><th>分析</th></tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.id }}</td>
+      <td>{{ item.ts }}</td>
+      <td>{{ item.source }}</td>
+      <td>{{ item.event_type }}</td>
+      <td>{{ item.src_ip or "-" }}</td>
+      <td>{{ item.dst_ip or "-" }}</td>
+      <td>{{ item.anomaly_score }}</td>
+      <td>{{ item.ml_score }}</td>
+      <td><span class="tag {{ item.risk_level }}">{{ item.risk_level }}</span> {{ item.risk_score }}</td>
+      <td><a href="/analysis/view/{{ item.id }}">查看</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

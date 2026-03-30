@@ -95,6 +95,13 @@ class MLInferenceResult(BaseModel):
     reason: str = ""
 
 
+class NotificationResult(BaseModel):
+    success: bool
+    sent: bool = False
+    channel: str = "none"
+    detail: str = ""
+
+
 class PolicyDecision(BaseModel):
     action: str
     target: str | None = None

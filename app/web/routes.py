@@ -13,6 +13,7 @@ from app.common.assets import list_assets
 from app.common.config import get_settings, resolve_path
 from app.common.db import get_connection
 from app.common.event_store import list_events
+from app.common.notifier import Notifier
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
 from app.detector.ml_engine import MLInferenceEngine
 from app.detector.model_manager import ModelManager
@@ -181,6 +182,42 @@ def ml_status() -> dict:
         "anomaly_model_loaded": engine.anomaly_model is not None,
         "classifier_model_loaded": engine.classifier_model is not None,
     }
+
+
+@router.get("/notifications/status")
+def notifications_status() -> dict:
+    return Notifier().status()
+
+
+@router.get("/notifications/view", response_class=HTMLResponse)
+def notifications_view(request: Request) -> HTMLResponse:
+    notifier = Notifier()
+    return templates.TemplateResponse(
+        request=request,
+        name="notifications.html",
+        context={
+            "settings": settings,
+            "message": request.query_params.get("message", ""),
+            "level": request.query_params.get("level", "info"),
+            "status": notifier.status(),
+        },
+    )
+
+
+@router.post("/notifications/test")
+async def notifications_test(request: Request) -> RedirectResponse | dict:
+    notifier = Notifier()
+    result = notifier.send(
+        title="Pi-Guard test notification",
+        message="manual notification test",
+        payload={"source": "manual_test"},
+        force=True,
+    )
+    if request.headers.get("content-type", ""):
+        msg = quote(f"通知测试结果: {result.detail}")
+        level = "success" if result.success else "info"
+        return RedirectResponse(url=f"/notifications/view?message={msg}&level={level}", status_code=303)
+    return result.model_dump()
 
 
 @router.get("/models/versions")

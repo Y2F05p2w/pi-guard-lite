@@ -40,6 +40,9 @@ probe:
 
 notifier:
   enabled: false
+  channel: "webhook"
+  webhook_url: ""
+  timeout_seconds: 3
 
 ml:
   enabled: false

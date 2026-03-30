@@ -40,6 +40,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 - `docs/部署前检查说明.md`
 - `docs/使用说明.md`
 - `docs/模型训练与调优说明.md`
+- `docs/通知管理说明.md`
 - `docs/排障说明.md`
 - `docs/场景测试说明.md`
 - `docs/联动设备调试清单.md`
@@ -78,6 +79,7 @@ python -m unittest tests\test_policy_service.py
 python -m unittest tests\test_baseline.py
 python -m unittest tests\test_ml_engine.py
 python -m unittest tests\test_model_manager.py
+python -m unittest tests\test_notifier.py
 python -m unittest tests\test_fluentbit_input.py
 python -m unittest tests\test_risk_scoring_weights.py
 python -m unittest tests\test_pipeline_integration.py

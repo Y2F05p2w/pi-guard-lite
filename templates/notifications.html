@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>通知管理</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:24px;background:#f5f7fb}
+    .nav a{margin-right:14px;color:#0b57d0;text-decoration:none}
+    .card{background:#fff;padding:18px;border-radius:10px;max-width:720px;margin-top:16px}
+    .msg{padding:12px;border-radius:8px;margin:16px 0}
+    .success{background:#e8f5e9;color:#1b5e20}
+    .info{background:#e3f2fd;color:#0d47a1}
+    table{width:100%;border-collapse:collapse;background:#fff;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+    button{margin-top:12px;padding:10px 16px}
+  </style>
+</head>
+<body>
+  <h1>通知管理</h1>
+  <div class="nav">
+    <a href="/">首页</a><a href="/events/view">事件</a><a href="/policies/view">策略</a><a href="/manual/view">手工操作</a><a href="/models/view">模型管理</a>
+  </div>
+
+  {% if message %}
+  <div class="msg {{ level }}">{{ message }}</div>
+  {% endif %}
+
+  <div class="card">
+    <h2>当前状态</h2>
+    <table>
+      <tbody>
+        <tr><th>enabled</th><td>{{ status.enabled }}</td></tr>
+        <tr><th>channel</th><td>{{ status.channel }}</td></tr>
+        <tr><th>webhook_configured</th><td>{{ status.webhook_configured }}</td></tr>
+        <tr><th>timeout_seconds</th><td>{{ status.timeout_seconds }}</td></tr>
+      </tbody>
+    </table>
+    <form method="post" action="/notifications/test">
+      <button type="submit">发送测试通知</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 from app.common.event_store import insert_audit_log
+from app.common.notifier import Notifier
 from app.common.schemas import ExecutionResult, PolicyDecision
 from app.executor.factory import get_executor
 from app.policy.repository import (
@@ -19,6 +20,7 @@ from app.policy.repository import (
 class PolicyService:
     def __init__(self) -> None:
         self.executor = get_executor()
+        self.notifier = Notifier()
 
     def apply_decision(
         self,
@@ -55,6 +57,16 @@ class PolicyService:
                     expire_at=expire_at,
                     status="simulated" if result.simulated else "active",
                 )
+                self.notifier.send(
+                    title="Pi-Guard block applied",
+                    message=f"{decision.target} blocked",
+                    payload={
+                        "event_id": event_id,
+                        "policy_id": policy_id,
+                        "reason": decision.reason,
+                        "result": result.model_dump(),
+                    },
+                )
             insert_audit_log(
                 "policy",
                 "apply_decision",
@@ -86,6 +98,11 @@ class PolicyService:
             if exec_result.success:
                 update_blocklist_status(block["id"], "expired")
                 release_blocklist_by_ip(ip, status="expired")
+                self.notifier.send(
+                    title="Pi-Guard block expired",
+                    message=f"{ip} released by ttl",
+                    payload={"block_id": block["id"], "target_ip": ip},
+                )
             else:
                 update_blocklist_status(block["id"], "release_failed")
             insert_audit_log(
@@ -105,6 +122,11 @@ class PolicyService:
         if result.success:
             update_policy_status(policy_id, "rolled_back")
             release_blocklist_by_ip(target, status="released")
+            self.notifier.send(
+                title="Pi-Guard rollback executed",
+                message=f"{target} released by rollback",
+                payload={"policy_id": policy_id, "reason": reason},
+            )
         insert_audit_log(
             "policy",
             "rollback_policy",
@@ -130,6 +152,11 @@ class PolicyService:
                 "policy",
                 "manual_unblock",
                 {"target_ip": ip, "reason": reason, "result": result.model_dump()},
+            )
+            self.notifier.send(
+                title="Pi-Guard manual unblock",
+                message=f"{ip} manually released",
+                payload={"target_ip": ip, "reason": reason},
             )
         else:
             insert_audit_log(

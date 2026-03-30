@@ -30,7 +30,15 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 - `http://127.0.0.1:8080/blocklist/view`
 - `http://127.0.0.1:8080/probes/view`
 - `http://127.0.0.1:8080/manual/view`
+- `http://127.0.0.1:8080/models/view`
 - `http://127.0.0.1:8080/ml/status`
+
+文档：
+
+- `docs/部署说明.md`
+- `docs/使用说明.md`
+- `docs/排障说明.md`
+- `docs/树莓派上线手册.md`
 
 ## 样例流水线测试
 
@@ -42,6 +50,7 @@ python scripts\run_pipeline_service.py --source auth.log --file tests\samples\au
 Get-Content tests\samples\fluentbit_syslog.jsonl | python scripts\run_fluentbit_stdin.py --no-policy --no-probe
 python scripts\create_demo_models.py
 python scripts\import_model.py anomaly models\anomaly_model.pkl --version demo-anomaly
+bash scripts/start_fluentbit_bridge.sh
 python scripts\release_expired_blocks.py
 python -m unittest tests\test_suricata_pipeline.py
 python -m unittest tests\test_policy_and_probe.py

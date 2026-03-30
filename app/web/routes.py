@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from pathlib import Path
 import sqlite3
+import tempfile
 from urllib.parse import quote
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -13,6 +15,7 @@ from app.common.db import get_connection
 from app.common.event_store import list_events
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
 from app.detector.ml_engine import MLInferenceEngine
+from app.detector.model_manager import ModelManager
 from app.executor.factory import get_executor
 from app.policy.repository import list_blocklist, list_policies, list_probe_results
 from app.policy.service import PolicyService
@@ -178,6 +181,70 @@ def ml_status() -> dict:
         "anomaly_model_loaded": engine.anomaly_model is not None,
         "classifier_model_loaded": engine.classifier_model is not None,
     }
+
+
+@router.get("/models/versions")
+def model_versions() -> list[dict]:
+    return ModelManager().list_versions()
+
+
+@router.get("/models/view", response_class=HTMLResponse)
+def models_view(request: Request) -> HTMLResponse:
+    manager = ModelManager()
+    return templates.TemplateResponse(
+        request=request,
+        name="models.html",
+        context={
+            "settings": settings,
+            "message": request.query_params.get("message", ""),
+            "level": request.query_params.get("level", "info"),
+            "status": manager.get_status(),
+            "grouped_versions": manager.grouped_versions(),
+        },
+    )
+
+
+@router.post("/models/import")
+async def models_import(
+    request: Request,
+    model_name: str = Form(...),
+    version: str = Form(""),
+    activate: str = Form("true"),
+    model_file: UploadFile = File(...),
+) -> RedirectResponse | dict:
+    manager = ModelManager()
+    suffix = Path(model_file.filename or "model.pkl").suffix or ".pkl"
+    temp_path = None
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await model_file.read())
+        temp_path = tmp.name
+    try:
+        result = manager.import_model(
+            model_name=model_name,
+            source_path=temp_path,
+            version=version or None,
+            activate=str(activate).lower() != "false",
+        )
+    finally:
+        if temp_path:
+            Path(temp_path).unlink(missing_ok=True)
+    content_type = request.headers.get("content-type", "")
+    if "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
+        msg = quote(f"模型导入完成: {result['model_name']}:{result['version']}")
+        return RedirectResponse(url=f"/models/view?message={msg}&level=success", status_code=303)
+    return result
+
+
+@router.post("/models/activate")
+async def models_activate(request: Request) -> RedirectResponse | dict:
+    form = await request.form()
+    model_name = str(form.get("model_name", ""))
+    version = str(form.get("version", ""))
+    result = ModelManager().activate_model(model_name, version)
+    msg = quote(f"模型已激活: {model_name}:{version}")
+    if request.headers.get("content-type", ""):
+        return RedirectResponse(url=f"/models/view?message={msg}&level=success", status_code=303)
+    return result
 
 
 @router.post("/manual/block")

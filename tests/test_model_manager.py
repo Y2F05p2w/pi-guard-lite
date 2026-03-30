@@ -38,6 +38,14 @@ class ModelManagerTestCase(unittest.TestCase):
             self.assertEqual(versions[0]["version"], "unit-test")
             self.assertEqual(versions[0]["is_active"], 1)
 
+            grouped = manager.grouped_versions()
+            self.assertIn("anomaly", grouped)
+            self.assertEqual(grouped["anomaly"][0]["version"], "unit-test")
+
+            status = manager.get_status()
+            self.assertIn("anomaly", status["active_versions"])
+            self.assertEqual(status["active_versions"]["anomaly"]["version"], "unit-test")
+
             active_target = Path("models/anomaly_model.pkl")
             self.assertTrue(active_target.exists())
 

@@ -1,0 +1,13 @@
+[Unit]
+Description=Pi-Guard Lite Fluent Bit Bridge
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pi-guard-lite
+ExecStart=/bin/bash /opt/pi-guard-lite/scripts/start_fluentbit_bridge.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

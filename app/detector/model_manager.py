@@ -93,6 +93,27 @@ class ModelManager:
             rows = conn.execute(query, params).fetchall()
         return [dict(row) for row in rows]
 
+    def grouped_versions(self) -> dict[str, list[dict[str, Any]]]:
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        for item in self.list_versions():
+            grouped.setdefault(item["model_name"], []).append(item)
+        return grouped
+
+    def get_status(self) -> dict[str, Any]:
+        records = self.list_versions()
+        active = {}
+        for item in records:
+            if item["is_active"]:
+                active[item["model_name"]] = item
+        return {
+            "configured": {
+                "anomaly": str(self._get_active_model_target("anomaly")) if self._get_active_model_target("anomaly") else None,
+                "classifier": str(self._get_active_model_target("classifier")) if self._get_active_model_target("classifier") else None,
+            },
+            "active_versions": active,
+            "count": len(records),
+        }
+
     def _get_version(self, model_name: str, version: str) -> dict[str, Any] | None:
         with get_connection() as conn:
             row = conn.execute(

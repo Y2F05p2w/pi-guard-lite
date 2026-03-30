@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import sqlite3
-from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from app.common.assets import list_assets
 from app.common.config import get_settings, resolve_path
 from app.common.db import get_connection
 from app.common.event_store import list_events
@@ -82,6 +83,11 @@ def blocklist(limit: int = 20) -> list[dict]:
     return list_blocklist(limit=limit)
 
 
+@router.get("/assets")
+def assets() -> list[dict]:
+    return list_assets()
+
+
 @router.get("/events/view", response_class=HTMLResponse)
 def events_view(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
@@ -111,19 +117,44 @@ def blocklist_view(request: Request) -> HTMLResponse:
 
 @router.get("/probes/view", response_class=HTMLResponse)
 def probes_view(request: Request) -> HTMLResponse:
+    items = list_probe_results(limit=100)
+    summary = {
+        "total": len(items),
+        "success": len([item for item in items if item["result"] == "success"]),
+        "failed": len([item for item in items if item["result"] != "success"]),
+    }
     return templates.TemplateResponse(
         request=request,
         name="probes.html",
-        context={"items": list_probe_results(limit=100), "settings": settings},
+        context={"items": items, "summary": summary, "settings": settings},
+    )
+
+
+@router.get("/assets/view", response_class=HTMLResponse)
+def assets_view(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="assets.html",
+        context={"items": list_assets(), "settings": settings},
     )
 
 
 @router.get("/manual/view", response_class=HTMLResponse)
 def manual_view(request: Request) -> HTMLResponse:
+    message = request.query_params.get("message", "")
+    level = request.query_params.get("level", "info")
+    executor_result = get_executor().check_connection().model_dump()
     return templates.TemplateResponse(
         request=request,
         name="manual.html",
-        context={"settings": settings},
+        context={
+            "settings": settings,
+            "message": message,
+            "level": level,
+            "executor_result": executor_result,
+            "recent_policies": list_policies(limit=10),
+            "recent_blocklist": list_blocklist(limit=10),
+        },
     )
 
 
@@ -151,6 +182,7 @@ def ml_status() -> dict:
 
 @router.post("/manual/block")
 async def manual_block(request: Request, payload: ManualBlockRequest | None = None) -> dict:
+    content_type = request.headers.get("content-type", "")
     if payload is None:
         form = await request.form()
         payload = ManualBlockRequest(
@@ -164,6 +196,9 @@ async def manual_block(request: Request, payload: ManualBlockRequest | None = No
         ttl_seconds=payload.ttl_seconds,
         reason=payload.reason,
     )
+    if "application/x-www-form-urlencoded" in content_type:
+        msg = quote(f"封禁完成: {payload.ip}")
+        return RedirectResponse(url=f"/manual/view?message={msg}&level=success", status_code=303)
     return {
         "policy_id": policy_id,
         "result": result.model_dump() if result else None,
@@ -172,6 +207,7 @@ async def manual_block(request: Request, payload: ManualBlockRequest | None = No
 
 @router.post("/manual/unblock")
 async def manual_unblock(request: Request, payload: ManualUnblockRequest | None = None) -> dict:
+    content_type = request.headers.get("content-type", "")
     if payload is None:
         form = await request.form()
         payload = ManualUnblockRequest(
@@ -183,4 +219,7 @@ async def manual_unblock(request: Request, payload: ManualUnblockRequest | None 
         ip=payload.ip,
         reason=payload.reason,
     )
+    if "application/x-www-form-urlencoded" in content_type:
+        msg = quote(f"解封完成: {payload.ip}")
+        return RedirectResponse(url=f"/manual/view?message={msg}&level=success", status_code=303)
     return result.model_dump()

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>资产列表</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:24px;background:#f5f7fb}
+    .nav a{margin-right:14px;color:#0b57d0;text-decoration:none}
+    table{width:100%;border-collapse:collapse;background:#fff}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+  </style>
+</head>
+<body>
+  <h1>资产列表</h1>
+  <div class="nav"><a href="/">首页</a><a href="/events/view">事件</a><a href="/policies/view">策略</a><a href="/blocklist/view">黑名单</a><a href="/manual/view">手工操作</a></div>
+  <table>
+    <thead><tr><th>IP</th><th>主机名</th><th>类型</th><th>重要性</th><th>负责人</th></tr></thead>
+    <tbody>
+      {% for item in items %}
+      <tr><td>{{ item.ip }}</td><td>{{ item.hostname }}</td><td>{{ item.asset_type }}</td><td>{{ item.importance }}</td><td>{{ item.owner }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

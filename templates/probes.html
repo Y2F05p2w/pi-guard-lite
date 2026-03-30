@@ -1,16 +1,32 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><title>探测结果</title>
-<style>body{font-family:Arial,sans-serif;margin:24px;background:#f5f7fb}.nav a{margin-right:14px;color:#0b57d0;text-decoration:none}table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}</style>
+<head>
+  <meta charset="utf-8">
+  <title>探测结果</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:24px;background:#f5f7fb}
+    .nav a{margin-right:14px;color:#0b57d0;text-decoration:none}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(160px,1fr));gap:16px;margin:16px 0}
+    .card{background:#fff;border-radius:10px;padding:16px}
+    .value{font-size:24px;font-weight:bold}
+    table{width:100%;border-collapse:collapse;background:#fff}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+    .success{color:#1b5e20}.failed{color:#b71c1c}
+  </style>
 </head>
 <body>
   <h1>探测结果</h1>
-  <div class="nav"><a href="/">首页</a><a href="/events/view">事件</a><a href="/policies/view">策略</a><a href="/blocklist/view">黑名单</a></div>
+  <div class="nav"><a href="/">首页</a><a href="/events/view">事件</a><a href="/policies/view">策略</a><a href="/blocklist/view">黑名单</a><a href="/manual/view">手工操作</a></div>
+  <div class="grid">
+    <div class="card"><div>总探测数</div><div class="value">{{ summary.total }}</div></div>
+    <div class="card"><div>成功</div><div class="value success">{{ summary.success }}</div></div>
+    <div class="card"><div>失败</div><div class="value failed">{{ summary.failed }}</div></div>
+  </div>
   <table>
     <thead><tr><th>ID</th><th>策略ID</th><th>目标</th><th>结果</th><th>延迟(ms)</th><th>时间</th></tr></thead>
     <tbody>
       {% for item in items %}
-      <tr><td>{{ item.id }}</td><td>{{ item.policy_id or "-" }}</td><td>{{ item.probe_target }}</td><td>{{ item.result }}</td><td>{{ item.latency_ms or "-" }}</td><td>{{ item.created_at }}</td></tr>
+      <tr><td>{{ item.id }}</td><td>{{ item.policy_id or "-" }}</td><td>{{ item.probe_target }}</td><td class="{{ item.result }}">{{ item.result }}</td><td>{{ item.latency_ms or "-" }}</td><td>{{ item.created_at }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

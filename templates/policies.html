@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>策略列表</title>
+<style>body{font-family:Arial,sans-serif;margin:24px;background:#f5f7fb}.nav a{margin-right:14px;color:#0b57d0;text-decoration:none}table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}</style>
+</head>
+<body>
+  <h1>策略列表</h1>
+  <div class="nav"><a href="/">首页</a><a href="/events/view">事件</a><a href="/blocklist/view">黑名单</a><a href="/manual/view">手工操作</a></div>
+  <table>
+    <thead><tr><th>ID</th><th>事件ID</th><th>动作</th><th>目标</th><th>TTL</th><th>状态</th><th>创建时间</th></tr></thead>
+    <tbody>
+      {% for item in items %}
+      <tr><td>{{ item.id }}</td><td>{{ item.event_id or "-" }}</td><td>{{ item.action }}</td><td>{{ item.target }}</td><td>{{ item.ttl }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

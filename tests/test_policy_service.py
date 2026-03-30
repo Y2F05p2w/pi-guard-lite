@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import unittest
 
-from app.common.db import get_db_path, init_db
+from app.common.db import get_connection, init_db
 from app.policy.repository import list_blocklist, list_policies
 from app.policy.service import PolicyService
 
 
 class PolicyServiceTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        db_path = get_db_path()
-        if db_path.exists():
-            db_path.unlink()
         init_db()
+        with get_connection() as conn:
+            for table in ("policy", "blocklist", "probe_result", "audit_log"):
+                conn.execute(f"DELETE FROM {table}")
+            conn.commit()
 
     def test_manual_block_and_unblock_in_dry_run(self) -> None:
         service = PolicyService()

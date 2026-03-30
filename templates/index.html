@@ -3,31 +3,67 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pi-Guard Lite</title>
+  <title>{{ settings.app.name }}</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 32px; background: #f5f7fb; color: #222; }
-    .grid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 16px; }
-    .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+    body { font-family: Arial, sans-serif; margin: 24px; background: #f5f7fb; color: #222; }
+    .nav a { margin-right: 14px; color: #0b57d0; text-decoration: none; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 16px; margin: 20px 0; }
+    .card { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
     .value { font-size: 28px; font-weight: bold; margin-top: 8px; }
     .muted { color: #666; }
+    table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 12px; }
+    th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+    h2 { margin-top: 28px; }
   </style>
 </head>
 <body>
   <h1>{{ settings.app.name }}</h1>
-  <p class="muted">当前为项目骨架版本，后续会逐步接入感知、决策、执行和动态控制模块。</p>
-  <div class="grid">
-    <div class="card">
-      <div>事件总数</div>
-      <div class="value">{{ stats.events }}</div>
-    </div>
-    <div class="card">
-      <div>策略总数</div>
-      <div class="value">{{ stats.policies }}</div>
-    </div>
-    <div class="card">
-      <div>封禁总数</div>
-      <div class="value">{{ stats.blocked }}</div>
-    </div>
+  <div class="nav">
+    <a href="/">首页</a>
+    <a href="/events/view">事件</a>
+    <a href="/policies/view">策略</a>
+    <a href="/blocklist/view">黑名单</a>
+    <a href="/probes/view">探测</a>
+    <a href="/manual/view">手工操作</a>
   </div>
+  <p class="muted">当前已接入样例检测、策略执行、探测和回滚能力，可直接查看数据与手工操作。</p>
+
+  <div class="grid">
+    <div class="card"><div>事件总数</div><div class="value">{{ stats.events }}</div></div>
+    <div class="card"><div>策略总数</div><div class="value">{{ stats.policies }}</div></div>
+    <div class="card"><div>封禁总数</div><div class="value">{{ stats.blocked }}</div></div>
+  </div>
+
+  <h2>最近事件</h2>
+  <table>
+    <thead><tr><th>ID</th><th>时间</th><th>类型</th><th>源 IP</th><th>风险</th></tr></thead>
+    <tbody>
+      {% for item in recent_events %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.ts }}</td>
+        <td>{{ item.event_type }}</td>
+        <td>{{ item.src_ip or "-" }}</td>
+        <td>{{ item.risk_level }} / {{ item.risk_score }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>最近策略</h2>
+  <table>
+    <thead><tr><th>ID</th><th>动作</th><th>目标</th><th>状态</th><th>TTL</th></tr></thead>
+    <tbody>
+      {% for item in recent_policies %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.action }}</td>
+        <td>{{ item.target }}</td>
+        <td>{{ item.status }}</td>
+        <td>{{ item.ttl }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </body>
 </html>

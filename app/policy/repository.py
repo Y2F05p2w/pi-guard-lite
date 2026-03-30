@@ -128,3 +128,17 @@ def insert_probe_result(
         )
         conn.commit()
         return int(cursor.lastrowid)
+
+
+def list_probe_results(limit: int = 50) -> list[dict[str, Any]]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, policy_id, probe_target, result, latency_ms, created_at
+            FROM probe_result
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]

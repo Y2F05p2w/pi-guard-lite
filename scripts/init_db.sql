@@ -29,6 +29,16 @@ CREATE TABLE IF NOT EXISTS feature (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS baseline_profile (
+    profile_key TEXT PRIMARY KEY,
+    total_events INTEGER DEFAULT 0,
+    event_types_json TEXT DEFAULT '{}',
+    active_hours_json TEXT DEFAULT '[]',
+    dst_ips_json TEXT DEFAULT '[]',
+    dst_ports_json TEXT DEFAULT '[]',
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS policy (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_id INTEGER,

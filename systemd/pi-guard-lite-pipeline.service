@@ -1,0 +1,13 @@
+[Unit]
+Description=Pi-Guard Lite Pipeline Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pi-guard-lite
+ExecStart=/opt/pi-guard-lite/.venv/bin/python scripts/run_pipeline_service.py --source suricata --file /var/log/suricata/eve.json --mode tail
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

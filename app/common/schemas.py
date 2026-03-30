@@ -63,6 +63,11 @@ class FeatureVector(BaseModel):
     is_whitelisted: bool = False
     asset_importance: int = 1
     signature_severity: int = 0
+    baseline_score: float = 0.0
+    known_source: bool = False
+    known_event_type: bool = False
+    new_destination_ip: bool = False
+    new_destination_port: bool = False
 
 
 class RuleMatch(BaseModel):

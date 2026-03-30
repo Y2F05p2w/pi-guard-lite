@@ -12,7 +12,7 @@ from app.common.db import get_connection
 from app.common.event_store import list_events
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
 from app.executor.factory import get_executor
-from app.policy.repository import list_blocklist, list_policies
+from app.policy.repository import list_blocklist, list_policies, list_probe_results
 from app.policy.service import PolicyService
 from app.probe.checker import ProbeChecker
 
@@ -37,8 +37,17 @@ def index(request: Request) -> HTMLResponse:
             "policies": _count(conn, "policy"),
             "blocked": _count(conn, "blocklist"),
         }
+    recent_events = list_events(limit=10)
+    recent_policies = list_policies(limit=10)
     return templates.TemplateResponse(
-        request=request, name="index.html", context={"stats": stats, "settings": settings}
+        request=request,
+        name="index.html",
+        context={
+            "stats": stats,
+            "settings": settings,
+            "recent_events": recent_events,
+            "recent_policies": recent_policies,
+        },
     )
 
 
@@ -72,6 +81,51 @@ def blocklist(limit: int = 20) -> list[dict]:
     return list_blocklist(limit=limit)
 
 
+@router.get("/events/view", response_class=HTMLResponse)
+def events_view(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="events.html",
+        context={"items": list_events(limit=100), "settings": settings},
+    )
+
+
+@router.get("/policies/view", response_class=HTMLResponse)
+def policies_view(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="policies.html",
+        context={"items": list_policies(limit=100), "settings": settings},
+    )
+
+
+@router.get("/blocklist/view", response_class=HTMLResponse)
+def blocklist_view(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="blocklist.html",
+        context={"items": list_blocklist(limit=100), "settings": settings},
+    )
+
+
+@router.get("/probes/view", response_class=HTMLResponse)
+def probes_view(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="probes.html",
+        context={"items": list_probe_results(limit=100), "settings": settings},
+    )
+
+
+@router.get("/manual/view", response_class=HTMLResponse)
+def manual_view(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request=request,
+        name="manual.html",
+        context={"settings": settings},
+    )
+
+
 @router.get("/executor/check")
 def executor_check() -> dict:
     result = get_executor().check_connection()
@@ -85,7 +139,14 @@ def run_probe() -> list[dict]:
 
 
 @router.post("/manual/block")
-def manual_block(payload: ManualBlockRequest) -> dict:
+async def manual_block(request: Request, payload: ManualBlockRequest | None = None) -> dict:
+    if payload is None:
+        form = await request.form()
+        payload = ManualBlockRequest(
+            ip=str(form.get("ip", "")),
+            ttl_seconds=int(form.get("ttl_seconds", 1800)),
+            reason=str(form.get("reason", "manual block")),
+        )
     service = PolicyService()
     policy_id, result = service.manual_block_ip(
         ip=payload.ip,
@@ -99,7 +160,13 @@ def manual_block(payload: ManualBlockRequest) -> dict:
 
 
 @router.post("/manual/unblock")
-def manual_unblock(payload: ManualUnblockRequest) -> dict:
+async def manual_unblock(request: Request, payload: ManualUnblockRequest | None = None) -> dict:
+    if payload is None:
+        form = await request.form()
+        payload = ManualUnblockRequest(
+            ip=str(form.get("ip", "")),
+            reason=str(form.get("reason", "manual unblock")),
+        )
     service = PolicyService()
     result = service.manual_unblock_ip(
         ip=payload.ip,

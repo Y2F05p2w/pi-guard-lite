@@ -25,17 +25,25 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 
 - `http://127.0.0.1:8080/`
 - `http://127.0.0.1:8080/health`
+- `http://127.0.0.1:8080/events/view`
+- `http://127.0.0.1:8080/policies/view`
+- `http://127.0.0.1:8080/blocklist/view`
+- `http://127.0.0.1:8080/probes/view`
+- `http://127.0.0.1:8080/manual/view`
 
 ## 样例流水线测试
 
 ```powershell
 python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl
 python scripts\process_suricata_file.py tests\samples\suricata_eve.jsonl --apply-policy --run-probe
+python scripts\run_pipeline_service.py --source suricata --file tests\samples\suricata_eve.jsonl --mode existing
+python scripts\run_pipeline_service.py --source auth.log --file tests\samples\auth.log --mode existing --no-policy --no-probe
 python scripts\release_expired_blocks.py
 python -m unittest tests\test_suricata_pipeline.py
 python -m unittest tests\test_policy_and_probe.py
 python -m unittest tests\test_system_pipeline.py
 python -m unittest tests\test_policy_service.py
+python -m unittest tests\test_baseline.py
 ```
 
 ## 目录说明
@@ -48,7 +56,7 @@ docs/        项目文档
 logs/        运行日志
 models/      模型文件
 scripts/     初始化和辅助脚本
-systemd/     服务文件
+systemd/     Web 与流水线服务文件
 templates/   页面模板
 tests/       测试
 ```

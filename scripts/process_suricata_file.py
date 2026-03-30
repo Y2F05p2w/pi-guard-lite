@@ -9,80 +9,47 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.collector.raw_store import append_raw_event
 from app.collector.suricata_reader import SuricataFileReader
-from app.common.config import get_settings
 from app.common.db import init_db
-from app.common.event_store import insert_audit_log, insert_event, insert_feature, update_event_scores
 from app.common.logger import setup_logging
-from app.detector.rule_engine import RuleEngine
-from app.features.extractor import FeatureExtractor
-from app.parser.suricata_parser import parse_suricata_event
-from app.policy.generator import PolicyGenerator
-from app.policy.service import PolicyService
-from app.probe.rollback_runner import RollbackRunner
-from app.scorer.risk_scoring import RiskScorer
+from app.policy.pipeline import PipelineProcessor
 
 
 def process_file(file_path: str, apply_policy: bool = False, run_probe: bool = False) -> int:
-    settings = get_settings()
     reader = SuricataFileReader(file_path)
-    extractor = FeatureExtractor()
-    rule_engine = RuleEngine()
-    policy_generator = PolicyGenerator()
-    policy_service = PolicyService()
-    rollback_runner = RollbackRunner()
-    scorer = RiskScorer(
-        alert_threshold=float(settings["risk"].get("alert_threshold", 40)),
-        block_threshold=float(settings["risk"].get("block_threshold", 85)),
-    )
+    processor = PipelineProcessor()
     total = 0
     for raw_event in reader.read_existing():
-        stored_raw_path = append_raw_event(raw_event)
-        raw_event.raw_path = stored_raw_path
-        event = parse_suricata_event(raw_event)
-        features = extractor.extract(event)
-        matches = rule_engine.evaluate(event, features)
-        risk = scorer.score(event, features, matches)
-
-        event_id = insert_event(event)
-        insert_feature(event_id, features)
-        update_event_scores(event_id, risk)
-        insert_audit_log(
-            category="pipeline",
-            action="process_suricata_event",
-            detail={
-                "event_id": event_id,
-                "event_type": event.event_type,
-                "risk_score": risk.risk_score,
-                "risk_level": risk.risk_level,
-            },
+        result = processor.process_raw_event(
+            raw_event,
+            apply_policy=apply_policy,
+            run_probe=run_probe,
         )
+        event_id = result["event_id"]
+        event = result["event"]
+        risk = result["risk"]
         logging.getLogger(__name__).info(
             "processed event_id=%s event_type=%s risk=%s level=%s",
             event_id,
-            event.event_type,
-            risk.risk_score,
-            risk.risk_level,
+            event["event_type"],
+            risk["risk_score"],
+            risk["risk_level"],
         )
         if apply_policy:
-            decision = policy_generator.generate(event, features, risk)
-            policy_id, exec_result = policy_service.apply_decision(event_id, decision)
+            decision = result["decision"]["decision"] if result["decision"] else {}
+            policy_id = result["decision"]["policy_id"] if result["decision"] else None
             logging.getLogger(__name__).info(
                 "policy event_id=%s action=%s target=%s policy_id=%s",
                 event_id,
-                decision.action,
-                decision.target,
+                decision.get("action"),
+                decision.get("target"),
                 policy_id,
             )
-            if run_probe and policy_id and decision.action == "block_ip":
-                rollback_payload = rollback_runner.run_for_policy(policy_id)
-                insert_audit_log("probe", "rollback_check", rollback_payload)
-                if rollback_payload["should_rollback"]:
+            if run_probe and result["rollback"] and result["rollback"]["should_rollback"]:
                     logging.getLogger(__name__).warning(
                         "rollback triggered for policy_id=%s reason=%s",
                         policy_id,
-                        rollback_payload["reason"],
+                        result["rollback"]["reason"],
                     )
         total += 1
     return total

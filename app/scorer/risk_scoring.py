@@ -20,6 +20,7 @@ class RiskScorer:
         behavior_bonus = 5 if features.off_hours else 0
         blacklist_bonus = 20 if features.hits_blacklist else 0
         whitelist_penalty = 40 if features.is_whitelisted else 0
+        baseline_bonus = min(features.baseline_score, 25)
 
         anomaly_score = round(
             min(
@@ -31,7 +32,7 @@ class RiskScorer:
             ),
             2,
         )
-        risk_score = base_score + rule_score + asset_bonus + behavior_bonus + blacklist_bonus
+        risk_score = base_score + rule_score + asset_bonus + behavior_bonus + blacklist_bonus + baseline_bonus
         risk_score += anomaly_score * 0.15
         risk_score -= whitelist_penalty
         risk_score = round(max(0.0, min(100.0, risk_score)), 2)

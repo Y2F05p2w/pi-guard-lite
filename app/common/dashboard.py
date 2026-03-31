@@ -4,6 +4,7 @@ from typing import Any
 
 from app.common.db import get_connection
 from app.common.event_store import list_events
+from app.common.runtime_checks import collect_runtime_report
 from app.policy.repository import list_policies
 
 
@@ -27,6 +28,15 @@ def build_dashboard_summary(
             "low": _count_where(conn, "event", "risk_level = 'low'"),
         }
 
+    runtime = collect_runtime_report()
+    runtime_summary = {
+        "hostname": runtime["host"]["hostname"],
+        "python": runtime["host"]["python"],
+        "disk_used_percent": runtime["resources"]["disk"]["used_percent"],
+        "temperature_c": runtime["resources"]["temperature_c"],
+        "services": runtime["systemd"]["services"],
+    }
+
     return {
         "stats": stats,
         "risk_summary": risk_summary,
@@ -34,6 +44,7 @@ def build_dashboard_summary(
         "recent_policies": list_policies(limit=recent_policy_limit),
         "scan_listener_status": scan_listener_status or {},
         "notifier_status": notifier_status or {},
+        "runtime_summary": runtime_summary,
     }
 
 

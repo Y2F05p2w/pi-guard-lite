@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}控制台总览{% endblock %}
 {% block page_title %}控制台总览{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
 {% block content %}
 <p class="subtle">统一展示实时事件、策略联动、高级分析与关键运行状态。界面风格向企业防火墙控制台靠拢。</p>
 
@@ -29,6 +30,15 @@
     </div>
   </div>
   <div class="card">
+    <h3>运行概览</h3>
+    <div class="kv">
+      <div>主机</div><div id="rt-hostname">{{ runtime_summary.hostname }}</div>
+      <div>Python</div><div id="rt-python">{{ runtime_summary.python }}</div>
+      <div>磁盘使用率</div><div id="rt-disk">{{ runtime_summary.disk_used_percent }}%</div>
+      <div>温度</div><div id="rt-temp">{{ runtime_summary.temperature_c if runtime_summary.temperature_c is not none else '-' }}</div>
+    </div>
+  </div>
+  <div class="card">
     <h3>高级攻击分析</h3>
     <p class="subtle">查看 MITRE 映射、攻击图谱、受影响资产与专项分析结果。</p>
     <a class="btn" href="/analysis/view/1">进入分析中心</a>
@@ -48,6 +58,12 @@
     <p class="subtle">检查通知链路与发送测试告警。</p>
     <a class="btn secondary" href="/notifications/view">打开通知管理</a>
   </div>
+</div>
+
+<div class="toolbar" style="margin-top:16px">
+  <span class="mini-stat"><span class="status-dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}"></span> 监听器 <strong id="quick-scan">{{ '在线' if scan_listener_status.running else '离线' }}</strong></span>
+  <span class="mini-stat"><span class="status-dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}"></span> 通知 <strong id="quick-notify">{{ '已启用' if notifier_status.enabled else '未启用' }}</strong></span>
+  <span class="mini-stat"><span class="status-dot info"></span> 设备健康 <strong id="quick-health">正常</strong></span>
 </div>
 
 <div class="split" style="margin-top:16px">
@@ -116,6 +132,14 @@ async function refreshDashboard() {
     const scan = data.scan_listener_status || {};
     document.getElementById('scan-ports').textContent = (scan.ports || []).join(', ');
     document.getElementById('scan-running').textContent = scan.running ? '运行中' : '未运行';
+    document.getElementById('quick-scan').textContent = scan.running ? '在线' : '离线';
+    const notify = data.notifier_status || {};
+    document.getElementById('quick-notify').textContent = notify.enabled ? '已启用' : '未启用';
+    const runtime = data.runtime_summary || {};
+    document.getElementById('rt-hostname').textContent = runtime.hostname || '-';
+    document.getElementById('rt-python').textContent = runtime.python || '-';
+    document.getElementById('rt-disk').textContent = (runtime.disk_used_percent ?? '-') + '%';
+    document.getElementById('rt-temp').textContent = runtime.temperature_c ?? '-';
   } catch (e) {}
 }
 setInterval(refreshDashboard, 5000);

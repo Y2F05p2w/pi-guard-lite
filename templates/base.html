@@ -81,6 +81,9 @@
     .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
     .topbar-time{font-size:12px;color:rgba(255,255,255,.85);margin-right:8px;min-width:150px;text-align:right}
     .auto-refresh{font-size:12px;color:var(--muted);margin-left:auto}
+    .crumbs{font-size:12px;color:var(--muted);margin-bottom:12px}
+    .mini-stat{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 12px;font-size:12px;box-shadow:var(--shadow)}
+    .mini-stat strong{font-size:14px}
     @media (max-width: 1000px){
       .layout{grid-template-columns:1fr}
       .sidebar{display:none}
@@ -138,6 +141,7 @@
         </div>
       </div>
       <main class="page">
+        <div class="crumbs">Home / {% block breadcrumb %}{{ settings.app.name }}{% endblock %}</div>
         {% block content %}{% endblock %}
       </main>
     </section>

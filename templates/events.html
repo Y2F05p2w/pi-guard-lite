@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}事件中心{% endblock %}
 {% block page_title %}事件中心{% endblock %}
+{% block breadcrumb %}事件中心{% endblock %}
 {% block content %}
 <p class="subtle">统一展示流量、系统日志、EDR 与样本分析输入后的结构化事件。</p>
 <div class="toolbar">
   <input id="eventsFilter" class="search-box" placeholder="搜索事件类型 / 源IP / 目的IP">
   <a class="btn secondary" href="/scan-listener/status">监听状态</a>
+  <span class="auto-refresh">页面每 8 秒自动刷新</span>
 </div>
 <table>
   <thead>
@@ -38,5 +40,8 @@ filterInput?.addEventListener('input', () => {
     row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
   });
 });
+setInterval(() => {
+  if (!document.hidden) location.reload();
+}, 8000);
 </script>
 {% endblock %}

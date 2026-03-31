@@ -11,7 +11,15 @@
 </div>
 <table>
   <thead>
-    <tr><th>ID</th><th>时间</th><th>来源</th><th>类型</th><th>源IP</th><th>目的IP</th><th>异常分</th><th>ML分</th><th>风险</th><th>分析</th></tr>
+    <tr>
+      <th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=id&sort_order={{ 'asc' if sort_by=='id' and sort_order=='desc' else 'desc' }}">ID</a></th>
+      <th>时间</th>
+      <th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=source&sort_order={{ 'asc' if sort_by=='source' and sort_order=='desc' else 'desc' }}">来源</a></th>
+      <th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=event_type&sort_order={{ 'asc' if sort_by=='event_type' and sort_order=='desc' else 'desc' }}">类型</a></th>
+      <th>源IP</th><th>目的IP</th><th>异常分</th><th>ML分</th>
+      <th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=risk_score&sort_order={{ 'asc' if sort_by=='risk_score' and sort_order=='desc' else 'desc' }}">风险</a></th>
+      <th>分析</th>
+    </tr>
   </thead>
   <tbody id="eventsBody">
     {% for item in items %}
@@ -30,6 +38,11 @@
     {% endfor %}
   </tbody>
 </table>
+<div class="toolbar" style="margin-top:16px">
+  <span class="auto-refresh">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
+  {% if pagination.has_prev %}<a class="btn secondary" href="?page={{ pagination.prev_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">上一页</a>{% endif %}
+  {% if pagination.has_next %}<a class="btn secondary" href="?page={{ pagination.next_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">下一页</a>{% endif %}
+</div>
 {% endblock %}
 {% block scripts %}
 <script>

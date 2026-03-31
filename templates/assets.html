@@ -9,13 +9,18 @@
   <span class="auto-refresh">资产总数：{{ items|length }}</span>
 </div>
 <table>
-  <thead><tr><th>IP</th><th>主机名</th><th>类型</th><th>重要性</th><th>负责人</th></tr></thead>
+  <thead><tr><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=ip&sort_order={{ 'desc' if sort_by=='ip' and sort_order=='asc' else 'asc' }}">IP</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=hostname&sort_order={{ 'desc' if sort_by=='hostname' and sort_order=='asc' else 'asc' }}">主机名</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=asset_type&sort_order={{ 'desc' if sort_by=='asset_type' and sort_order=='asc' else 'asc' }}">类型</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=importance&sort_order={{ 'desc' if sort_by=='importance' and sort_order=='asc' else 'asc' }}">重要性</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=owner&sort_order={{ 'desc' if sort_by=='owner' and sort_order=='asc' else 'asc' }}">负责人</a></th></tr></thead>
   <tbody id="assetBody">
     {% for item in items %}
     <tr><td><a href="/assets/view/{{ item.ip }}">{{ item.ip }}</a></td><td>{{ item.hostname }}</td><td>{{ item.asset_type }}</td><td>{{ item.importance }}</td><td>{{ item.owner }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
+<div class="toolbar" style="margin-top:16px">
+  <span class="auto-refresh">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
+  {% if pagination.has_prev %}<a class="btn secondary" href="?page={{ pagination.prev_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">上一页</a>{% endif %}
+  {% if pagination.has_next %}<a class="btn secondary" href="?page={{ pagination.next_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">下一页</a>{% endif %}
+</div>
 {% endblock %}
 {% block scripts %}
 <script>

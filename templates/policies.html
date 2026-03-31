@@ -9,13 +9,18 @@
   <span class="auto-refresh">页面每 8 秒自动刷新</span>
 </div>
 <table>
-  <thead><tr><th>ID</th><th>事件ID</th><th>动作</th><th>目标</th><th>TTL</th><th>状态</th><th>创建时间</th></tr></thead>
+  <thead><tr><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=id&sort_order={{ 'asc' if sort_by=='id' and sort_order=='desc' else 'desc' }}">ID</a></th><th>事件ID</th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=action&sort_order={{ 'asc' if sort_by=='action' and sort_order=='desc' else 'desc' }}">动作</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=target&sort_order={{ 'asc' if sort_by=='target' and sort_order=='desc' else 'desc' }}">目标</a></th><th>TTL</th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=status&sort_order={{ 'asc' if sort_by=='status' and sort_order=='desc' else 'desc' }}">状态</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=created_at&sort_order={{ 'asc' if sort_by=='created_at' and sort_order=='desc' else 'desc' }}">创建时间</a></th></tr></thead>
   <tbody id="policyBody">
     {% for item in items %}
     <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{% if item.event_id %}<a href="/events/view/{{ item.event_id }}">{{ item.event_id }}</a>{% else %}-{% endif %}</td><td>{{ item.action }}</td><td>{{ item.target }}</td><td>{{ item.ttl }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
+<div class="toolbar" style="margin-top:16px">
+  <span class="auto-refresh">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
+  {% if pagination.has_prev %}<a class="btn secondary" href="?page={{ pagination.prev_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">上一页</a>{% endif %}
+  {% if pagination.has_next %}<a class="btn secondary" href="?page={{ pagination.next_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">下一页</a>{% endif %}
+</div>
 {% endblock %}
 {% block scripts %}
 <script>

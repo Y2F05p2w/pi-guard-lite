@@ -15,6 +15,7 @@ from app.common.config import get_settings, resolve_path
 from app.common.dashboard import build_dashboard_summary
 from app.common.db import get_connection
 from app.common.event_store import get_analysis_result, get_event, get_feature, list_events
+from app.common.listing import paginate, sort_items
 from app.common.notifier import Notifier
 from app.common.runtime_checks import collect_runtime_report
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
@@ -181,8 +182,24 @@ def assets() -> list[dict]:
 
 
 @router.get("/events/view", response_class=HTMLResponse)
-def events_view(request: Request) -> HTMLResponse:
-    return _render_page(request, "events.html", "events", items=list_events(limit=100))
+def events_view(
+    request: Request,
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+) -> HTMLResponse:
+    items = sort_items(list_events(limit=1000), sort_by, sort_order, {"id", "event_type", "source", "risk_score", "risk_level"})
+    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    return _render_page(
+        request,
+        "events.html",
+        "events",
+        items=page_items,
+        pagination=pagination,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
 
 
 @router.get("/events/view/{event_id}", response_class=HTMLResponse)
@@ -207,8 +224,24 @@ def event_detail_view(request: Request, event_id: int) -> HTMLResponse:
 
 
 @router.get("/policies/view", response_class=HTMLResponse)
-def policies_view(request: Request) -> HTMLResponse:
-    return _render_page(request, "policies.html", "policies", items=list_policies(limit=100))
+def policies_view(
+    request: Request,
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+) -> HTMLResponse:
+    items = sort_items(list_policies(limit=1000), sort_by, sort_order, {"id", "action", "target", "status", "created_at"})
+    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    return _render_page(
+        request,
+        "policies.html",
+        "policies",
+        items=page_items,
+        pagination=pagination,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
 
 
 @router.get("/policies/view/{policy_id}", response_class=HTMLResponse)
@@ -229,8 +262,24 @@ def policy_detail_view(request: Request, policy_id: int) -> HTMLResponse:
 
 
 @router.get("/blocklist/view", response_class=HTMLResponse)
-def blocklist_view(request: Request) -> HTMLResponse:
-    return _render_page(request, "blocklist.html", "blocklist", items=list_blocklist(limit=100))
+def blocklist_view(
+    request: Request,
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+) -> HTMLResponse:
+    items = sort_items(list_blocklist(limit=1000), sort_by, sort_order, {"id", "target_ip", "status", "expire_at", "created_at"})
+    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    return _render_page(
+        request,
+        "blocklist.html",
+        "blocklist",
+        items=page_items,
+        pagination=pagination,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
 
 
 @router.get("/blocklist/view/{block_id}", response_class=HTMLResponse)
@@ -247,19 +296,51 @@ def blocklist_detail_view(request: Request, block_id: int) -> HTMLResponse:
 
 
 @router.get("/probes/view", response_class=HTMLResponse)
-def probes_view(request: Request) -> HTMLResponse:
-    items = list_probe_results(limit=100)
+def probes_view(
+    request: Request,
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+) -> HTMLResponse:
+    items = sort_items(list_probe_results(limit=1000), sort_by, sort_order, {"id", "result", "latency_ms", "created_at"})
     summary = {
         "total": len(items),
         "success": len([item for item in items if item["result"] == "success"]),
         "failed": len([item for item in items if item["result"] != "success"]),
     }
-    return _render_page(request, "probes.html", "probes", items=items, summary=summary)
+    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    return _render_page(
+        request,
+        "probes.html",
+        "probes",
+        items=page_items,
+        summary=summary,
+        pagination=pagination,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
 
 
 @router.get("/assets/view", response_class=HTMLResponse)
-def assets_view(request: Request) -> HTMLResponse:
-    return _render_page(request, "assets.html", "assets", items=list_assets())
+def assets_view(
+    request: Request,
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "ip",
+    sort_order: str = "asc",
+) -> HTMLResponse:
+    items = sort_items(list_assets(), sort_by, sort_order, {"ip", "hostname", "asset_type", "importance", "owner"})
+    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    return _render_page(
+        request,
+        "assets.html",
+        "assets",
+        items=page_items,
+        pagination=pagination,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
 
 
 @router.get("/assets/view/{ip}", response_class=HTMLResponse)

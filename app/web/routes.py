@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.common.assets import list_assets
 from app.common.config import get_settings, resolve_path
+from app.common.dashboard import build_dashboard_summary
 from app.common.db import get_connection
 from app.common.event_store import get_analysis_result, list_events
 from app.common.notifier import Notifier
@@ -38,11 +39,14 @@ def _count(conn: sqlite3.Connection, table: str) -> int:
 
 
 def _render_page(request: Request, template_name: str, active_nav: str, **context) -> HTMLResponse:
+    scan_listener_service = getattr(request.app.state, "scan_listener_service", None)
     ctx = {
         "settings": settings,
         "request": request,
         "active_nav": active_nav,
         "current_user": request.cookies.get(get_cookie_name(), ""),
+        "scan_listener_status": scan_listener_service.status() if scan_listener_service else {},
+        "notifier_status": Notifier().status(),
     }
     ctx.update(context)
     return templates.TemplateResponse(request=request, name=template_name, context=ctx)
@@ -85,21 +89,16 @@ def logout() -> Response:
 
 @router.get("/", response_class=HTMLResponse)
 def index(request: Request) -> HTMLResponse:
-    with get_connection() as conn:
-        stats = {
-            "events": _count(conn, "event"),
-            "policies": _count(conn, "policy"),
-            "blocked": _count(conn, "blocklist"),
-        }
-    recent_events = list_events(limit=10)
-    recent_policies = list_policies(limit=10)
+    scan_listener_service = getattr(request.app.state, "scan_listener_service", None)
+    dashboard = build_dashboard_summary(
+        scan_listener_status=scan_listener_service.status() if scan_listener_service else {},
+        notifier_status=Notifier().status(),
+    )
     return _render_page(
         request,
         "index.html",
         "dashboard",
-        stats=stats,
-        recent_events=recent_events,
-        recent_policies=recent_policies,
+        **dashboard,
     )
 
 
@@ -116,6 +115,15 @@ def stats() -> StatsResponse:
             policies=_count(conn, "policy"),
             blocked=_count(conn, "blocklist"),
         )
+
+
+@router.get("/dashboard/summary")
+def dashboard_summary(request: Request) -> dict:
+    scan_listener_service = getattr(request.app.state, "scan_listener_service", None)
+    return build_dashboard_summary(
+        scan_listener_status=scan_listener_service.status() if scan_listener_service else {},
+        notifier_status=Notifier().status(),
+    )
 
 
 @router.get("/events")

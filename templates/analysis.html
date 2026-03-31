@@ -49,9 +49,15 @@
   <svg id="graphCanvas" viewBox="0 0 900 440"></svg>
 </div>
 
-<div class="card" style="margin-top:16px">
-  <h3>受影响资产</h3>
-  <div class="code">{{ result.impacted_assets_json }}</div>
+<div class="split" style="margin-top:16px">
+  <div class="card">
+    <h3>受影响资产</h3>
+    <div class="code">{{ result.impacted_assets_json }}</div>
+  </div>
+  <div class="card">
+    <h3>原始图谱 JSON</h3>
+    <div class="code">{{ result.graph_json }}</div>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

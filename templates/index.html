@@ -2,19 +2,41 @@
 {% block title %}控制台总览{% endblock %}
 {% block page_title %}控制台总览{% endblock %}
 {% block content %}
-<p class="subtle">借鉴企业级防火墙控制台风格，统一展示事件、策略、黑名单、高级分析和运营操作。</p>
+<p class="subtle">统一展示实时事件、策略联动、高级分析与关键运行状态。界面风格向企业防火墙控制台靠拢。</p>
 
 <div class="grid">
-  <div class="card"><div class="stat-title">事件总数</div><div class="stat-value">{{ stats.events }}</div></div>
-  <div class="card"><div class="stat-title">策略总数</div><div class="stat-value">{{ stats.policies }}</div></div>
-  <div class="card"><div class="stat-title">封禁总数</div><div class="stat-value">{{ stats.blocked }}</div></div>
+  <div class="card"><div class="stat-title">事件总数</div><div class="stat-value" id="stat-events">{{ stats.events }}</div></div>
+  <div class="card"><div class="stat-title">策略总数</div><div class="stat-value" id="stat-policies">{{ stats.policies }}</div></div>
+  <div class="card"><div class="stat-title">封禁总数</div><div class="stat-value" id="stat-blocked">{{ stats.blocked }}</div></div>
 </div>
 
 <div class="grid" style="margin-top:16px">
   <div class="card">
+    <h3>监听状态</h3>
+    <p class="subtle">自动监听真实扫描行为。当前端口：<span id="scan-ports">{{ scan_listener_status.ports or [] }}</span></p>
+    <div class="stat-value" style="font-size:24px;color:{% if scan_listener_status.running %}var(--success){% else %}var(--warn){% endif %}" id="scan-running">
+      {% if scan_listener_status.running %}运行中{% else %}未运行{% endif %}
+    </div>
+    <div class="footer-note">状态接口：/scan-listener/status</div>
+  </div>
+  <div class="card">
+    <h3>风险分布</h3>
+    <div class="kv">
+      <div>Critical</div><div id="risk-critical">{{ risk_summary.critical }}</div>
+      <div>High</div><div id="risk-high">{{ risk_summary.high }}</div>
+      <div>Medium</div><div id="risk-medium">{{ risk_summary.medium }}</div>
+      <div>Low</div><div id="risk-low">{{ risk_summary.low }}</div>
+    </div>
+  </div>
+  <div class="card">
     <h3>高级攻击分析</h3>
     <p class="subtle">查看 MITRE 映射、攻击图谱、受影响资产与专项分析结果。</p>
     <a class="btn" href="/analysis/view/1">进入分析中心</a>
+  </div>
+  <div class="card">
+    <h3>手工处置</h3>
+    <p class="subtle">手工封禁、解封并联动执行器。</p>
+    <a class="btn" href="/manual/view">打开手工处置</a>
   </div>
   <div class="card">
     <h3>模型管理</h3>
@@ -22,18 +44,21 @@
     <a class="btn" href="/models/view">打开模型管理</a>
   </div>
   <div class="card">
-    <h3>手工处置</h3>
-    <p class="subtle">手工封禁、解封并联动执行器。</p>
-    <a class="btn" href="/manual/view">打开手工处置</a>
+    <h3>通知管理</h3>
+    <p class="subtle">检查通知链路与发送测试告警。</p>
+    <a class="btn secondary" href="/notifications/view">打开通知管理</a>
   </div>
 </div>
 
 <div class="split" style="margin-top:16px">
   <div class="card">
-    <h3>最近事件</h3>
+    <div class="section-title">
+      <h3>最近事件</h3>
+      <input id="eventSearch" class="search-box" placeholder="筛选事件类型/源IP">
+    </div>
     <table>
       <thead><tr><th>ID</th><th>类型</th><th>源 IP</th><th>风险</th><th>分析</th></tr></thead>
-      <tbody>
+      <tbody id="eventTableBody">
         {% for item in recent_events %}
         <tr>
           <td>{{ item.id }}</td>
@@ -47,10 +72,10 @@
     </table>
   </div>
   <div class="card">
-    <h3>最近策略</h3>
+    <div class="section-title"><h3>最近策略</h3></div>
     <table>
       <thead><tr><th>ID</th><th>动作</th><th>目标</th><th>状态</th></tr></thead>
-      <tbody>
+      <tbody id="policyTableBody">
         {% for item in recent_policies %}
         <tr>
           <td>{{ item.id }}</td>
@@ -63,4 +88,36 @@
     </table>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+const search = document.getElementById('eventSearch');
+if (search) {
+  search.addEventListener('input', () => {
+    const keyword = search.value.trim().toLowerCase();
+    document.querySelectorAll('#eventTableBody tr').forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+    });
+  });
+}
+
+async function refreshDashboard() {
+  try {
+    const resp = await fetch('/dashboard/summary', {credentials:'same-origin'});
+    if (!resp.ok) return;
+    const data = await resp.json();
+    document.getElementById('stat-events').textContent = data.stats.events;
+    document.getElementById('stat-policies').textContent = data.stats.policies;
+    document.getElementById('stat-blocked').textContent = data.stats.blocked;
+    document.getElementById('risk-critical').textContent = data.risk_summary.critical;
+    document.getElementById('risk-high').textContent = data.risk_summary.high;
+    document.getElementById('risk-medium').textContent = data.risk_summary.medium;
+    document.getElementById('risk-low').textContent = data.risk_summary.low;
+    const scan = data.scan_listener_status || {};
+    document.getElementById('scan-ports').textContent = (scan.ports || []).join(', ');
+    document.getElementById('scan-running').textContent = scan.running ? '运行中' : '未运行';
+  } catch (e) {}
+}
+setInterval(refreshDashboard, 5000);
+</script>
 {% endblock %}

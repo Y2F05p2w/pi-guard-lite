@@ -3,11 +3,15 @@
 {% block page_title %}事件中心{% endblock %}
 {% block content %}
 <p class="subtle">统一展示流量、系统日志、EDR 与样本分析输入后的结构化事件。</p>
+<div class="toolbar">
+  <input id="eventsFilter" class="search-box" placeholder="搜索事件类型 / 源IP / 目的IP">
+  <a class="btn secondary" href="/scan-listener/status">监听状态</a>
+</div>
 <table>
   <thead>
     <tr><th>ID</th><th>时间</th><th>来源</th><th>类型</th><th>源IP</th><th>目的IP</th><th>异常分</th><th>ML分</th><th>风险</th><th>分析</th></tr>
   </thead>
-  <tbody>
+  <tbody id="eventsBody">
     {% for item in items %}
     <tr>
       <td>{{ item.id }}</td>
@@ -24,4 +28,15 @@
     {% endfor %}
   </tbody>
 </table>
+{% endblock %}
+{% block scripts %}
+<script>
+const filterInput = document.getElementById('eventsFilter');
+filterInput?.addEventListener('input', () => {
+  const keyword = filterInput.value.trim().toLowerCase();
+  document.querySelectorAll('#eventsBody tr').forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+  });
+});
+</script>
 {% endblock %}

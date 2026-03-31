@@ -6,32 +6,36 @@
   <title>{% block title %}{{ settings.app.name }}{% endblock %}</title>
   <style>
     :root{
-      --bg:#f3f6fb;
+      --bg:#eef3f8;
       --panel:#ffffff;
-      --sidebar:#0f1f33;
-      --sidebar-2:#132942;
-      --accent:#2d78f4;
-      --accent-2:#4ba3ff;
+      --sidebar:#f7f9fc;
+      --sidebar-2:#edf3fb;
+      --accent:#2f6fd6;
+      --accent-2:#5ea0ff;
       --text:#172231;
       --muted:#6e7b8b;
       --border:#dfe6ef;
       --success:#16a34a;
       --warn:#d97706;
       --danger:#dc2626;
-      --shadow:0 8px 24px rgba(15,31,51,.08);
+      --header:#0f4fa8;
+      --header-2:#1c64d1;
+      --shadow:0 8px 24px rgba(15,31,51,.06);
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
-    .sidebar{background:linear-gradient(180deg,var(--sidebar),var(--sidebar-2));color:#fff;padding:18px 14px}
-    .brand{padding:8px 10px 20px 10px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:16px}
-    .brand h1{font-size:18px;margin:0 0 6px 0}
-    .brand p{margin:0;color:rgba(255,255,255,.65);font-size:12px}
-    .menu-section{margin:12px 0 8px;color:rgba(255,255,255,.45);font-size:11px;text-transform:uppercase;letter-spacing:.12em;padding:0 10px}
-    .menu a{display:block;color:#d8e6ff;text-decoration:none;padding:10px 12px;border-radius:10px;margin:4px 0;font-size:14px}
-    .menu a:hover,.menu a.active{background:rgba(75,163,255,.18);color:#fff}
+    .layout{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+    .sidebar{background:linear-gradient(180deg,var(--sidebar),var(--sidebar-2));color:var(--text);padding:0;border-right:1px solid var(--border)}
+    .brand{padding:18px 18px 16px 18px;background:linear-gradient(135deg,var(--header),var(--header-2));color:#fff}
+    .brand h1{font-size:18px;margin:0 0 4px 0;font-weight:700}
+    .brand p{margin:0;color:rgba(255,255,255,.72);font-size:12px}
+    .menu-wrap{padding:14px}
+    .menu-section{margin:12px 0 8px;color:#7e8ca0;font-size:11px;text-transform:uppercase;letter-spacing:.12em;padding:0 10px}
+    .menu a{display:block;color:#314152;text-decoration:none;padding:11px 12px;border-radius:10px;margin:4px 0;font-size:14px;border:1px solid transparent}
+    .menu a:hover{background:#f4f8ff;border-color:#d7e5ff}
+    .menu a.active{background:#eaf2ff;color:#11479e;border-color:#cfe0ff;font-weight:600}
     .content{display:flex;flex-direction:column;min-width:0}
-    .topbar{height:64px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;box-shadow:0 1px 4px rgba(0,0,0,.03)}
+    .topbar{height:64px;background:linear-gradient(90deg,var(--header),var(--header-2));color:#fff;border-bottom:1px solid #0e4a9a;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
     .page{padding:22px}
     .page h1{margin:0 0 8px 0;font-size:28px}
     .subtle{color:var(--muted);margin:0 0 18px 0}
@@ -42,7 +46,7 @@
     .stat-value{font-size:30px;font-weight:700;margin-top:8px}
     .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
     .toolbar a,.toolbar button,.btn{display:inline-block;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 14px;text-decoration:none;cursor:pointer}
-    .btn.secondary{background:#eef4ff;color:var(--accent)}
+    .btn.secondary{background:#eef4ff;color:var(--accent);border:1px solid #cfe0ff}
     .btn.danger{background:var(--danger)}
     table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border)}
     thead{background:#f8fbff}
@@ -66,6 +70,15 @@
     .kv{display:grid;grid-template-columns:180px 1fr;gap:10px;font-size:14px}
     .code{white-space:pre-wrap;word-break:break-all;background:#0f172a;color:#dbeafe;padding:14px;border-radius:12px;font-family:Consolas,monospace;font-size:13px}
     .footer-note{color:var(--muted);font-size:12px;margin-top:14px}
+    .status-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.12);font-size:12px;margin-right:8px}
+    .status-dot{width:8px;height:8px;border-radius:999px;background:#93c5fd}
+    .status-dot.ok{background:#4ade80}
+    .status-dot.warn{background:#fbbf24}
+    .status-dot.err{background:#f87171}
+    .title-sub{font-size:12px;color:rgba(255,255,255,.72)}
+    .page-actions{display:flex;gap:10px;align-items:center}
+    .search-box{max-width:320px}
+    .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
     @media (max-width: 1000px){
       .layout{grid-template-columns:1fr}
       .sidebar{display:none}
@@ -79,30 +92,43 @@
     <aside class="sidebar">
       <div class="brand">
         <h1>{{ settings.app.name }}</h1>
-        <p>Enterprise Defense Console</p>
+        <p>Firewall Defense Console</p>
       </div>
-      <div class="menu-section">Dashboard</div>
-      <div class="menu">
-        <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">总览首页</a>
-        <a href="/events/view" class="{% if active_nav == 'events' %}active{% endif %}">事件中心</a>
-        <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">策略中心</a>
-        <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">黑名单</a>
-        <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">高级分析</a>
-      </div>
-      <div class="menu-section">Operations</div>
-      <div class="menu">
-        <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产画像</a>
-        <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">探测回滚</a>
-        <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">手工处置</a>
-        <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型管理</a>
-        <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知管理</a>
+      <div class="menu-wrap">
+        <div class="menu-section">Dashboard</div>
+        <div class="menu">
+          <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">总览首页</a>
+          <a href="/events/view" class="{% if active_nav == 'events' %}active{% endif %}">事件中心</a>
+          <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">策略中心</a>
+          <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">黑名单</a>
+          <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">高级分析</a>
+        </div>
+        <div class="menu-section">Operations</div>
+        <div class="menu">
+          <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产画像</a>
+          <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">探测回滚</a>
+          <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">手工处置</a>
+          <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型管理</a>
+          <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知管理</a>
+        </div>
       </div>
     </aside>
     <section class="content">
       <div class="topbar">
-        <div><strong>{% block page_title %}{{ settings.app.name }}{% endblock %}</strong></div>
         <div>
-          <span style="margin-right:12px;color:var(--muted)">用户：{{ current_user or 'admin' }}</span>
+          <strong style="font-size:18px">{% block page_title %}{{ settings.app.name }}{% endblock %}</strong>
+          <div class="title-sub">Security control plane · version preview</div>
+        </div>
+        <div class="page-actions">
+          <span class="status-chip">
+            <span class="status-dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}"></span>
+            监听器 {% if scan_listener_status.running %}运行中{% else %}未运行{% endif %}
+          </span>
+          <span class="status-chip">
+            <span class="status-dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}"></span>
+            通知 {% if notifier_status.enabled %}已启用{% else %}未启用{% endif %}
+          </span>
+          <span style="margin-right:12px;color:rgba(255,255,255,.82)">用户：{{ current_user or 'admin' }}</span>
           <a class="btn secondary" href="/logout">退出</a>
         </div>
       </div>

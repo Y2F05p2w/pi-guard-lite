@@ -8,164 +8,304 @@
     :root{
       --bg:#eef3f8;
       --panel:#ffffff;
-      --sidebar:#f7f9fc;
-      --sidebar-2:#edf3fb;
-      --accent:#2f6fd6;
-      --accent-2:#5ea0ff;
+      --panel-2:#f8fbff;
+      --border:#d7e2ee;
       --text:#172231;
-      --muted:#6e7b8b;
-      --border:#dfe6ef;
+      --muted:#6b7c90;
+      --blue:#0f57b3;
+      --blue-2:#1f6dd4;
+      --blue-3:#dfeeff;
+      --blue-4:#eaf4ff;
       --success:#16a34a;
-      --warn:#d97706;
+      --warning:#d97706;
       --danger:#dc2626;
-      --header:#0f4fa8;
-      --header-2:#1c64d1;
-      --shadow:0 8px 24px rgba(15,31,51,.06);
+      --shadow:0 10px 28px rgba(15,31,51,.08);
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .layout{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
-    .sidebar{background:linear-gradient(180deg,var(--sidebar),var(--sidebar-2));color:var(--text);padding:0;border-right:1px solid var(--border)}
-    .brand{padding:18px 18px 16px 18px;background:linear-gradient(135deg,var(--header),var(--header-2));color:#fff}
-    .brand h1{font-size:18px;margin:0 0 4px 0;font-weight:700}
-    .brand p{margin:0;color:rgba(255,255,255,.72);font-size:12px}
-    .menu-wrap{padding:14px}
-    .menu-section{margin:12px 0 8px;color:#7e8ca0;font-size:11px;text-transform:uppercase;letter-spacing:.12em;padding:0 10px}
-    .menu a{display:block;color:#314152;text-decoration:none;padding:11px 12px;border-radius:10px;margin:4px 0;font-size:14px;border:1px solid transparent}
-    .menu a:hover{background:#f4f8ff;border-color:#d7e5ff}
-    .menu a.active{background:#eaf2ff;color:#11479e;border-color:#cfe0ff;font-weight:600}
+    a{text-decoration:none}
+    .shell{min-height:100vh;display:flex;flex-direction:column}
+    .globalbar{
+      height:60px;
+      background:linear-gradient(90deg,var(--blue),var(--blue-2));
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 20px;
+      box-shadow:0 2px 10px rgba(0,0,0,.12);
+    }
+    .brand-wrap{display:flex;align-items:center;gap:14px}
+    .brand-mark{
+      width:34px;height:34px;border-radius:8px;
+      background:rgba(255,255,255,.18);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;
+    }
+    .brand-text strong{display:block;font-size:16px}
+    .brand-text small{display:block;font-size:11px;color:rgba(255,255,255,.72)}
+    .global-tabs{display:flex;gap:6px;align-items:center}
+    .global-tabs a{
+      color:#e9f3ff;
+      padding:10px 16px;
+      border-radius:8px 8px 0 0;
+      font-size:14px;
+    }
+    .global-tabs a.active,.global-tabs a:hover{
+      background:rgba(255,255,255,.18);
+      color:#fff;
+    }
+    .global-status{display:flex;align-items:center;gap:8px}
+    .chip{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 10px;border-radius:999px;
+      background:rgba(255,255,255,.14);
+      color:#fff;font-size:12px;
+    }
+    .dot{width:8px;height:8px;border-radius:999px;background:#93c5fd}
+    .dot.ok{background:#4ade80}
+    .dot.warn{background:#fbbf24}
+    .dot.err{background:#f87171}
+    .user-link{color:#fff;opacity:.92;font-size:13px}
+
+    .workspace{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 60px)}
+    .sidebar{
+      background:#f8fbff;
+      border-right:1px solid var(--border);
+      padding:18px 14px;
+    }
+    .sidebar h3{
+      margin:0 0 12px 0;
+      font-size:12px;
+      color:#7b8da1;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      padding:0 10px;
+    }
+    .menu a{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:#2e4054;
+      padding:11px 12px;
+      border-radius:10px;
+      margin:4px 0;
+      border:1px solid transparent;
+      font-size:14px;
+    }
+    .menu a:hover{
+      background:#f0f6ff;
+      border-color:#d7e6fb;
+    }
+    .menu a.active{
+      background:linear-gradient(90deg,#eaf3ff,#f7fbff);
+      border-color:#c8dcfb;
+      color:#0f57b3;
+      font-weight:600;
+    }
+    .menu-badge{
+      font-size:11px;
+      color:#5a89d8;
+      background:#e7f1ff;
+      padding:2px 8px;
+      border-radius:999px;
+    }
+
     .content{display:flex;flex-direction:column;min-width:0}
-    .topbar{height:64px;background:linear-gradient(90deg,var(--header),var(--header-2));color:#fff;border-bottom:1px solid #0e4a9a;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
-    .page{padding:22px}
-    .page h1{margin:0 0 8px 0;font-size:28px}
+    .subbar{
+      background:#fff;
+      border-bottom:1px solid var(--border);
+      padding:14px 22px;
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+    }
+    .subbar-left strong{display:block;font-size:22px}
+    .subbar-left small{display:block;color:var(--muted);margin-top:4px}
+    .subbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .sub-stat{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:12px;
+      background:var(--panel-2);
+      border:1px solid var(--border);
+      font-size:12px;
+    }
+    .sub-time{font-size:12px;color:var(--muted);min-width:150px;text-align:right}
+
+    .page{padding:20px 22px}
+    .crumbs{font-size:12px;color:var(--muted);margin-bottom:14px}
     .subtle{color:var(--muted);margin:0 0 18px 0}
     .grid{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:16px}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
     .card h2,.card h3{margin:0 0 12px 0}
     .stat-title{font-size:13px;color:var(--muted)}
     .stat-value{font-size:30px;font-weight:700;margin-top:8px}
     .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
-    .toolbar a,.toolbar button,.btn{display:inline-block;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 14px;text-decoration:none;cursor:pointer}
-    .btn.secondary{background:#eef4ff;color:var(--accent);border:1px solid #cfe0ff}
+    .btn, .toolbar a, .toolbar button{
+      display:inline-flex;align-items:center;justify-content:center;
+      background:var(--blue-2);color:#fff;border:none;border-radius:10px;
+      padding:10px 14px;cursor:pointer;
+    }
+    .btn.secondary{background:#eef5ff;color:var(--blue);border:1px solid #cfe0fb}
+    .btn.ghost{background:#fff;color:var(--blue);border:1px solid var(--border)}
     .btn.danger{background:var(--danger)}
-    table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border)}
-    thead{background:#f8fbff}
-    th,td{padding:12px 14px;border-bottom:1px solid var(--border);text-align:left;font-size:14px;vertical-align:top}
+    .search-box, input, select, textarea{
+      width:100%;
+      max-width:340px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:#fff;
+      font:inherit;
+    }
+    textarea{min-height:100px}
+    .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px}
+    .auto-refresh{font-size:12px;color:var(--muted);margin-left:auto}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    thead{background:#f7fbff}
+    th,td{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      font-size:14px;
+      vertical-align:top;
+    }
     tr:last-child td{border-bottom:none}
-    .tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
+    .tag{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+    }
     .tag.low{background:#e6f4ea;color:#166534}
     .tag.medium{background:#fff4e5;color:#b45309}
     .tag.high{background:#ffe6e6;color:#b91c1c}
     .tag.critical{background:#fee2e2;color:#991b1b}
     .tag.info{background:#eef4ff;color:#1d4ed8}
-    .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;font:inherit}
-    textarea{min-height:100px}
     .message{padding:12px 14px;border-radius:12px;margin-bottom:16px}
     .message.success{background:#e8f7ec;color:#166534}
     .message.info{background:#eef4ff;color:#1d4ed8}
     .message.error{background:#fee2e2;color:#991b1b}
     .kv{display:grid;grid-template-columns:180px 1fr;gap:10px;font-size:14px}
     .code{white-space:pre-wrap;word-break:break-all;background:#0f172a;color:#dbeafe;padding:14px;border-radius:12px;font-family:Consolas,monospace;font-size:13px}
-    .footer-note{color:var(--muted);font-size:12px;margin-top:14px}
-    .status-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.12);font-size:12px;margin-right:8px}
-    .status-dot{width:8px;height:8px;border-radius:999px;background:#93c5fd}
-    .status-dot.ok{background:#4ade80}
-    .status-dot.warn{background:#fbbf24}
-    .status-dot.err{background:#f87171}
-    .title-sub{font-size:12px;color:rgba(255,255,255,.72)}
-    .page-actions{display:flex;gap:10px;align-items:center}
-    .search-box{max-width:320px}
-    .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .topbar-time{font-size:12px;color:rgba(255,255,255,.85);margin-right:8px;min-width:150px;text-align:right}
-    .auto-refresh{font-size:12px;color:var(--muted);margin-left:auto}
-    .crumbs{font-size:12px;color:var(--muted);margin-bottom:12px}
-    .mini-stat{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 12px;font-size:12px;box-shadow:var(--shadow)}
-    .mini-stat strong{font-size:14px}
-    @media (max-width: 1000px){
-      .layout{grid-template-columns:1fr}
+    .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--muted)}
+    .legend span{display:inline-flex;align-items:center;gap:8px}
+    .legend i{display:inline-block;width:12px;height:12px;border-radius:999px}
+    @media (max-width: 1100px){
+      .workspace{grid-template-columns:1fr}
       .sidebar{display:none}
-      .grid,.split,.form-grid{grid-template-columns:1fr}
+      .grid,.split{grid-template-columns:1fr}
     }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="brand">
-        <h1>{{ settings.app.name }}</h1>
-        <p>Firewall Defense Console</p>
-      </div>
-      <div class="menu-wrap">
-        <div class="menu-section">Dashboard</div>
-        <div class="menu">
-          <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">总览首页</a>
-          <a href="/events/view" class="{% if active_nav == 'events' %}active{% endif %}">事件中心</a>
-          <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">策略中心</a>
-          <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">黑名单</a>
-          <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">高级分析</a>
-          <a href="/scan-listener/view" class="{% if active_nav == 'scan_listener' %}active{% endif %}">扫描监听</a>
-        </div>
-        <div class="menu-section">Operations</div>
-        <div class="menu">
-          <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产画像</a>
-          <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">探测回滚</a>
-          <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">手工处置</a>
-          <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型管理</a>
-          <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知管理</a>
-          <a href="/runtime/view" class="{% if active_nav == 'runtime' %}active{% endif %}">运行状态</a>
+  <div class="shell">
+    <header class="globalbar">
+      <div class="brand-wrap">
+        <div class="brand-mark">PG</div>
+        <div class="brand-text">
+          <strong>{{ settings.app.name }}</strong>
+          <small>Huawei-style Security Control Plane</small>
         </div>
       </div>
-    </aside>
-    <section class="content">
-      <div class="topbar">
-        <div>
-          <strong style="font-size:18px">{% block page_title %}{{ settings.app.name }}{% endblock %}</strong>
-          <div class="title-sub">Security control plane · version preview</div>
-        </div>
-        <div class="page-actions">
-          <span class="status-chip" id="scan-chip">
-            <span class="status-dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}" id="scan-dot"></span>
-            <span id="scan-text">监听器 {% if scan_listener_status.running %}运行中{% else %}未运行{% endif %}</span>
-          </span>
-          <span class="status-chip" id="notify-chip">
-            <span class="status-dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}" id="notify-dot"></span>
-            <span id="notify-text">通知 {% if notifier_status.enabled %}已启用{% else %}未启用{% endif %}</span>
-          </span>
-          <span class="topbar-time" id="topbar-time"></span>
-          <span style="margin-right:12px;color:rgba(255,255,255,.82)">用户：{{ current_user or 'admin' }}</span>
-          <a class="btn secondary" href="/logout">退出</a>
-        </div>
+      <nav class="global-tabs">
+        <a href="/" class="{% if active_nav in ['dashboard','events','analysis'] %}active{% endif %}">监控与分析</a>
+        <a href="/policies/view" class="{% if active_nav in ['policies','blocklist'] %}active{% endif %}">策略与阻断</a>
+        <a href="/assets/view" class="{% if active_nav in ['assets','probes','manual'] %}active{% endif %}">运维与资产</a>
+        <a href="/models/view" class="{% if active_nav in ['models','notifications','runtime','scan_listener'] %}active{% endif %}">系统配置</a>
+      </nav>
+      <div class="global-status">
+        <span class="chip"><span class="dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}" id="scan-dot"></span><span id="scan-text">监听器{% if scan_listener_status.running %}在线{% else %}离线{% endif %}</span></span>
+        <span class="chip"><span class="dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}" id="notify-dot"></span><span id="notify-text">通知{% if notifier_status.enabled %}启用{% else %}关闭{% endif %}</span></span>
+        <span class="user-link">{{ current_user or 'admin' }}</span>
+        <a class="user-link" href="/logout">退出</a>
       </div>
-      <main class="page">
-        <div class="crumbs">Home / {% block breadcrumb %}{{ settings.app.name }}{% endblock %}</div>
-        {% block content %}{% endblock %}
-      </main>
-    </section>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="menu-wrap">
+          <h3>监控分析</h3>
+          <div class="menu">
+            <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">总览首页 <span class="menu-badge">SOC</span></a>
+            <a href="/events/view" class="{% if active_nav == 'events' %}active{% endif %}">事件中心</a>
+            <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">高级分析</a>
+            <a href="/scan-listener/view" class="{% if active_nav == 'scan_listener' %}active{% endif %}">扫描监听</a>
+          </div>
+          <h3>处置策略</h3>
+          <div class="menu">
+            <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">策略中心</a>
+            <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">黑名单</a>
+            <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">手工处置</a>
+          </div>
+          <h3>资源运营</h3>
+          <div class="menu">
+            <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产画像</a>
+            <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">探测回滚</a>
+            <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型管理</a>
+            <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知管理</a>
+            <a href="/runtime/view" class="{% if active_nav == 'runtime' %}active{% endif %}">运行状态</a>
+          </div>
+        </div>
+      </aside>
+
+      <section class="content">
+        <div class="subbar">
+          <div class="subbar-left">
+            <strong>{% block page_title %}{{ settings.app.name }}{% endblock %}</strong>
+            <small>{% block page_desc %}统一安全控制与分析中心{% endblock %}</small>
+          </div>
+          <div class="subbar-right">
+            <span class="sub-stat">事件 <strong id="top-events">-</strong></span>
+            <span class="sub-stat">策略 <strong id="top-policies">-</strong></span>
+            <span class="sub-stat">封禁 <strong id="top-blocked">-</strong></span>
+            <span class="sub-stat">风险 Critical <strong id="top-critical">-</strong></span>
+            <span class="sub-time" id="topbar-time"></span>
+          </div>
+        </div>
+
+        <main class="page">
+          <div class="crumbs">Home / {% block breadcrumb %}{{ settings.app.name }}{% endblock %}</div>
+          {% block content %}{% endblock %}
+        </main>
+      </section>
+    </div>
   </div>
+
   <script>
-    function updateTopbarClock() {
+    function updateClock() {
       const el = document.getElementById('topbar-time');
-      if (!el) return;
-      const now = new Date();
-      el.textContent = now.toLocaleString();
+      if (el) el.textContent = new Date().toLocaleString();
     }
-    async function refreshTopbarStatus() {
+    async function refreshTopState() {
       try {
-        const [scanResp, notifyResp] = await Promise.all([
+        const [scanResp, notifyResp, dashResp] = await Promise.all([
           fetch('/scan-listener/status', {credentials:'same-origin'}),
           fetch('/notifications/status', {credentials:'same-origin'}),
+          fetch('/dashboard/summary', {credentials:'same-origin'}),
         ]);
         if (scanResp.ok) {
           const data = await scanResp.json();
           const dot = document.getElementById('scan-dot');
           const text = document.getElementById('scan-text');
           if (dot && text) {
-            dot.className = 'status-dot ' + (data.running ? 'ok' : 'warn');
-            text.textContent = '监听器 ' + (data.running ? '运行中' : '未运行');
+            dot.className = 'dot ' + (data.running ? 'ok' : 'warn');
+            text.textContent = '监听器' + (data.running ? '在线' : '离线');
           }
         }
         if (notifyResp.ok) {
@@ -173,15 +313,25 @@
           const dot = document.getElementById('notify-dot');
           const text = document.getElementById('notify-text');
           if (dot && text) {
-            dot.className = 'status-dot ' + (data.enabled ? 'ok' : 'warn');
-            text.textContent = '通知 ' + (data.enabled ? '已启用' : '未启用');
+            dot.className = 'dot ' + (data.enabled ? 'ok' : 'warn');
+            text.textContent = '通知' + (data.enabled ? '启用' : '关闭');
           }
+        }
+        if (dashResp.ok) {
+          const data = await dashResp.json();
+          const stats = data.stats || {};
+          const risk = data.risk_summary || {};
+          document.getElementById('top-events').textContent = stats.events ?? '-';
+          document.getElementById('top-policies').textContent = stats.policies ?? '-';
+          document.getElementById('top-blocked').textContent = stats.blocked ?? '-';
+          document.getElementById('top-critical').textContent = risk.critical ?? '-';
         }
       } catch (e) {}
     }
-    updateTopbarClock();
-    setInterval(updateTopbarClock, 1000);
-    setInterval(refreshTopbarStatus, 5000);
+    updateClock();
+    refreshTopState();
+    setInterval(updateClock, 1000);
+    setInterval(refreshTopState, 5000);
   </script>
   {% block scripts %}{% endblock %}
 </body>

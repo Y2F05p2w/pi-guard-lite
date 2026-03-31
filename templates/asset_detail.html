@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}资产详情{% endblock %}
 {% block page_title %}资产详情{% endblock %}
+{% block breadcrumb %}资产画像 / {{ asset.ip if asset else '-' }}{% endblock %}
 {% block content %}
 {% if not asset %}
 <div class="card"><p>未找到资产。</p></div>

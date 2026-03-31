@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}通知管理{% endblock %}
 {% block page_title %}通知管理{% endblock %}
+{% block breadcrumb %}通知管理{% endblock %}
 {% block content %}
 {% if message %}
 <div class="message {{ 'success' if level == 'success' else 'info' }}">{{ message }}</div>

@@ -5,6 +5,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
+from app.collector.scan_listener_service import ScanListenerService
 from app.common.config import get_settings
 from app.common.db import init_db
 from app.common.logger import setup_logging
@@ -39,3 +40,15 @@ async def auth_middleware(request: Request, call_next):
 @app.on_event("startup")
 def on_startup() -> None:
     logger.info("Pi-Guard Lite started")
+    service = ScanListenerService(settings.get("scan_listener", {}))
+    app.state.scan_listener_service = service
+    status = service.start()
+    logger.info("scan listener startup status: %s", status)
+
+
+@app.on_event("shutdown")
+def on_shutdown() -> None:
+    service = getattr(app.state, "scan_listener_service", None)
+    if service:
+        service.stop()
+        logger.info("scan listener stopped")

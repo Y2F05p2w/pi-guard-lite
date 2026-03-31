@@ -38,6 +38,7 @@ admin / admin
 - `http://127.0.0.1:8080/probes/view`
 - `http://127.0.0.1:8080/manual/view`
 - `http://127.0.0.1:8080/models/view`
+- `http://127.0.0.1:8080/scan-listener/status`
 - `http://127.0.0.1:8080/ml/status`
 
 文档：

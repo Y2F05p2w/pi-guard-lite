@@ -52,7 +52,8 @@ notifier:
   timeout_seconds: 3
 
 scan_listener:
-  enabled: false
+  enabled: true
+  auto_start_with_web: true
   bind_host: "0.0.0.0"
   report_host: "127.0.0.1"
   ports: "2201-2212"

@@ -222,6 +222,14 @@ def run_probe() -> list[dict]:
     return [item.model_dump() for item in checker.run_default_targets()]
 
 
+@router.get("/scan-listener/status")
+def scan_listener_status(request: Request) -> dict:
+    service = getattr(request.app.state, "scan_listener_service", None)
+    if service is None:
+        return {"enabled": False, "running": False, "detail": "service not initialized"}
+    return service.status()
+
+
 @router.get("/ml/status")
 def ml_status() -> dict:
     engine = MLInferenceEngine()

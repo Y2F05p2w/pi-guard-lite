@@ -130,6 +130,7 @@ def _check_scan_listener_config(settings: dict[str, Any]) -> list[dict[str, Any]
     scan_cfg = settings.get("scan_listener", {})
     results = [
         _check("scan_listener", "enabled", "warn" if not scan_cfg.get("enabled", False) else "pass", f"enabled={scan_cfg.get('enabled', False)}"),
+        _check("scan_listener", "auto_start_with_web", "pass" if scan_cfg.get("auto_start_with_web", True) else "warn", f"auto_start_with_web={scan_cfg.get('auto_start_with_web', True)}"),
         _check("scan_listener", "bind_host", "pass" if scan_cfg.get("bind_host") else "warn", str(scan_cfg.get("bind_host", ""))),
         _check("scan_listener", "report_host", "pass" if scan_cfg.get("report_host") else "warn", str(scan_cfg.get("report_host", ""))),
         _check("scan_listener", "ports", "pass" if scan_cfg.get("ports") else "warn", str(scan_cfg.get("ports", ""))),

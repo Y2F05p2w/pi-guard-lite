@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}扫描监听{% endblock %}
+{% block page_title %}扫描监听{% endblock %}
+{% block content %}
+<p class="subtle">展示自动监听真实扫描行为的运行状态与推荐扫描命令。</p>
+
+<div class="split">
+  <div class="card">
+    <h3>当前状态</h3>
+    <div class="kv">
+      <div>enabled</div><div>{{ status.enabled }}</div>
+      <div>auto_start_with_web</div><div>{{ status.auto_start_with_web }}</div>
+      <div>running</div><div>{{ status.running }}</div>
+      <div>bind_host</div><div>{{ status.bind_host }}</div>
+      <div>report_host</div><div>{{ status.report_host }}</div>
+      <div>ports</div><div>{{ status.ports }}</div>
+      <div>last_error</div><div>{{ status.last_error or '-' }}</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>使用说明</h3>
+    <div class="code">扫描机命令：
+nmap -sT -Pn -n -p {{ (status.ports or [])|join(',') if status.ports else '2201-2212' }} {{ status.report_host or '你的本机IP' }}
+
+状态接口：
+/scan-listener/status
+
+登录后查看：
+/events/view
+/policies/view
+/blocklist/view</div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function refreshScanStatus() {
+  try {
+    const resp = await fetch('/scan-listener/status', {credentials:'same-origin'});
+    if (!resp.ok) return;
+    const data = await resp.json();
+    document.querySelectorAll('.kv div').forEach(()=>{});
+  } catch (e) {}
+}
+setInterval(refreshScanStatus, 5000);
+</script>
+{% endblock %}

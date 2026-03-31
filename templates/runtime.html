@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}运行状态{% endblock %}
+{% block page_title %}运行状态{% endblock %}
+{% block content %}
+<p class="subtle">展示当前主机运行信息、关键二进制、systemd 状态与资源情况。</p>
+
+<div class="split">
+  <div class="card">
+    <h3>主机信息</h3>
+    <div class="kv">
+      <div>hostname</div><div>{{ report.host.hostname }}</div>
+      <div>platform</div><div>{{ report.host.platform }}</div>
+      <div>python</div><div>{{ report.host.python }}</div>
+      <div>cwd</div><div>{{ report.paths.cwd }}</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>资源情况</h3>
+    <div class="kv">
+      <div>disk total</div><div>{{ report.resources.disk.total }}</div>
+      <div>disk used</div><div>{{ report.resources.disk.used }}</div>
+      <div>disk free</div><div>{{ report.resources.disk.free }}</div>
+      <div>used %</div><div>{{ report.resources.disk.used_percent }}</div>
+      <div>temperature</div><div>{{ report.resources.temperature_c if report.resources.temperature_c is not none else '-' }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="split" style="margin-top:16px">
+  <div class="card">
+    <h3>关键二进制</h3>
+    <div class="code">{{ report.binaries }}</div>
+  </div>
+  <div class="card">
+    <h3>systemd 状态</h3>
+    <div class="code">{{ report.systemd.services }}</div>
+  </div>
+</div>
+{% endblock %}

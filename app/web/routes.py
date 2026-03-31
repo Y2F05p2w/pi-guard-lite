@@ -16,6 +16,7 @@ from app.common.dashboard import build_dashboard_summary
 from app.common.db import get_connection
 from app.common.event_store import get_analysis_result, get_event, get_feature, list_events
 from app.common.notifier import Notifier
+from app.common.runtime_checks import collect_runtime_report
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
 from app.detector.ml_engine import MLInferenceEngine
 from app.detector.model_manager import ModelManager
@@ -313,6 +314,33 @@ def scan_listener_status(request: Request) -> dict:
     if service is None:
         return {"enabled": False, "running": False, "detail": "service not initialized"}
     return service.status()
+
+
+@router.get("/scan-listener/view", response_class=HTMLResponse)
+def scan_listener_view(request: Request) -> HTMLResponse:
+    service = getattr(request.app.state, "scan_listener_service", None)
+    status = service.status() if service else {"enabled": False, "running": False, "detail": "service not initialized"}
+    return _render_page(
+        request,
+        "scan_listener.html",
+        "scan_listener",
+        status=status,
+    )
+
+
+@router.get("/runtime/status")
+def runtime_status() -> dict:
+    return collect_runtime_report()
+
+
+@router.get("/runtime/view", response_class=HTMLResponse)
+def runtime_view(request: Request) -> HTMLResponse:
+    return _render_page(
+        request,
+        "runtime.html",
+        "runtime",
+        report=collect_runtime_report(),
+    )
 
 
 @router.get("/ml/status")

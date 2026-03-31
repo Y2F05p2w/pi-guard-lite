@@ -23,7 +23,7 @@ def parse_text_log(raw_event: RawInputEvent) -> SecurityEvent:
     message = str(raw_event.payload.get("message", ""))
     now = datetime.now(UTC)
 
-    if source == "scan.demo":
+    if source in {"scan.demo", "scan.listener"}:
         try:
             payload = json.loads(message)
             return SecurityEvent(

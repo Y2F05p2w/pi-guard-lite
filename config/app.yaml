@@ -51,6 +51,12 @@ notifier:
   webhook_url: ""
   timeout_seconds: 3
 
+scan_listener:
+  enabled: false
+  bind_host: "0.0.0.0"
+  report_host: "127.0.0.1"
+  ports: "2201-2212"
+
 retention:
   cleanup_enabled: true
   raw_days: 7

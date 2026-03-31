@@ -44,6 +44,7 @@ admin / admin
 
 - `docs/部署说明.md`
 - `docs/FluentBit真机接入说明.md`
+- `docs/自动扫描监听说明.md`
 - `docs/高级攻击分析说明.md`
 - `docs/部署前检查说明.md`
 - `docs/使用说明.md`
@@ -76,6 +77,7 @@ bash scripts/install_systemd.sh
 bash scripts/status.sh
 bash scripts/install_fluentbit_rpi.sh
 bash scripts/verify_rpi_services.sh
+python scripts\run_scan_listener_service.py --bind-host 0.0.0.0 --report-host 127.0.0.1 --ports 2201-2212
 python scripts\preflight_check.py
 python scripts\check_fluentbit_bridge.py
 python scripts\collect_runtime_report.py
@@ -106,6 +108,7 @@ python -m unittest tests\test_stability_runner.py
 python -m unittest tests\test_preflight.py
 python -m unittest tests\test_runtime_checks.py
 python -m unittest tests\test_scan_demo.py
+python -m unittest tests\test_scan_listener.py
 python -m unittest tests\test_advanced_analysis.py
 ```
 

@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 echo "== Pi-Guard Lite local pid status =="
-for name in web pipeline; do
+for name in web pipeline scan_listener; do
   pid_file="run/${name}.pid"
   if [[ -f "$pid_file" ]]; then
     pid="$(cat "$pid_file")"
@@ -25,6 +25,7 @@ if command -v systemctl >/dev/null 2>&1; then
   for service in \
     pi-guard-lite.service \
     pi-guard-lite-pipeline.service \
+    pi-guard-lite-scan-listener.service \
     pi-guard-lite-fluentbit.service \
     pi-guard-lite-release-expired.timer
   do

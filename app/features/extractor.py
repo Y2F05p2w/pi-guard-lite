@@ -48,7 +48,7 @@ class FeatureExtractor:
             http_error_ratio = len([code for code in http_recent if code >= 400]) / len(http_recent)
 
         domain = event.domain or event.tls_sni
-        is_whitelisted = False if event.source == "scan.demo" else (
+        is_whitelisted = False if event.source in {"scan.demo", "scan.listener"} else (
             is_ip_whitelisted(event.src_ip) or is_domain_whitelisted(domain)
         )
         return FeatureVector(

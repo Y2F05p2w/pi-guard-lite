@@ -17,6 +17,7 @@ def run_preflight_checks(project_root: Path | None = None) -> dict[str, Any]:
     checks.extend(_check_model_paths(settings))
     checks.extend(_check_executor_config(project_root))
     checks.extend(_check_fluentbit_configs(project_root))
+    checks.extend(_check_scan_listener_config(settings))
     checks.extend(_check_systemd_units(project_root))
 
     passed = len([item for item in checks if item["status"] == "pass"])
@@ -125,12 +126,33 @@ def _check_fluentbit_configs(project_root: Path) -> list[dict[str, Any]]:
     return result
 
 
+def _check_scan_listener_config(settings: dict[str, Any]) -> list[dict[str, Any]]:
+    scan_cfg = settings.get("scan_listener", {})
+    results = [
+        _check("scan_listener", "enabled", "warn" if not scan_cfg.get("enabled", False) else "pass", f"enabled={scan_cfg.get('enabled', False)}"),
+        _check("scan_listener", "bind_host", "pass" if scan_cfg.get("bind_host") else "warn", str(scan_cfg.get("bind_host", ""))),
+        _check("scan_listener", "report_host", "pass" if scan_cfg.get("report_host") else "warn", str(scan_cfg.get("report_host", ""))),
+        _check("scan_listener", "ports", "pass" if scan_cfg.get("ports") else "warn", str(scan_cfg.get("ports", ""))),
+    ]
+    script = PROJECT_ROOT / "scripts" / "run_scan_listener_service.py"
+    results.append(
+        _check(
+            "scan_listener",
+            "service_script",
+            "pass" if script.exists() else "fail",
+            f"path={script}",
+        )
+    )
+    return results
+
+
 def _check_systemd_units(project_root: Path) -> list[dict[str, Any]]:
     result = []
     for name in (
         "pi-guard-lite.service",
         "pi-guard-lite-pipeline.service",
         "pi-guard-lite-fluentbit.service",
+        "pi-guard-lite-scan-listener.service",
         "pi-guard-lite-release-expired.service",
         "pi-guard-lite-release-expired.timer",
     ):

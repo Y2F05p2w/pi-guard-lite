@@ -1,0 +1,13 @@
+[Unit]
+Description=Pi-Guard Lite Scan Listener Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pi-guard-lite
+ExecStart=/opt/pi-guard-lite/.venv/bin/python scripts/run_scan_listener_service.py --bind-host 0.0.0.0 --report-host 127.0.0.1 --ports 2201-2212
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

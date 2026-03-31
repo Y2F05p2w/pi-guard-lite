@@ -21,4 +21,5 @@ stop_pid_file() {
 }
 
 stop_pid_file "pipeline"
+stop_pid_file "scan_listener"
 stop_pid_file "web"

@@ -28,6 +28,7 @@ def get_settings() -> dict[str, Any]:
     settings.setdefault("risk", {})
     settings.setdefault("probe", {})
     settings.setdefault("notifier", {})
+    settings.setdefault("scan_listener", {})
     settings.setdefault("ml", {})
     return settings
 

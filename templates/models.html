@@ -33,10 +33,16 @@
 
 {% for model_name, items in grouped_versions.items() %}
 <div class="card" style="margin-top:16px">
-  <h3>{{ model_name }} 版本</h3>
+  <div class="section-title">
+    <h3>{{ model_name }} 版本</h3>
+    <span class="tag info">共 {{ items|length }} 个版本</span>
+  </div>
+  <div class="toolbar">
+    <input class="search-box model-filter" data-target="model-{{ model_name }}" placeholder="搜索版本 / 文件 / 时间">
+  </div>
   <table>
     <thead><tr><th>ID</th><th>版本</th><th>文件</th><th>激活</th><th>时间</th><th>操作</th></tr></thead>
-    <tbody>
+    <tbody id="model-{{ model_name }}">
       {% for item in items %}
       <tr>
         <td>{{ item.id }}</td>
@@ -57,4 +63,20 @@
   </table>
 </div>
 {% endfor %}
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.model-filter').forEach(input => {
+  input.addEventListener('input', () => {
+    const keyword = input.value.trim().toLowerCase();
+    const target = document.getElementById(input.dataset.target);
+    target?.querySelectorAll('tr').forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+    });
+  });
+});
+setInterval(() => {
+  if (!document.hidden) location.reload();
+}, 15000);
+</script>
 {% endblock %}

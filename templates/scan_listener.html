@@ -31,6 +31,14 @@ nmap -sT -Pn -n -p {{ (status.ports or [])|join(',') if status.ports else '2201-
 /blocklist/view</div>
   </div>
 </div>
+<div class="card" style="margin-top:16px">
+  <h3>运行建议</h3>
+  <ul>
+    <li>被扫描主机上保持 Web 服务运行。</li>
+    <li>另一台主机使用 <code>nmap -sT</code> 发起真实连接扫描。</li>
+    <li>扫描完成后查看事件中心、策略中心和高级分析页。</li>
+  </ul>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>

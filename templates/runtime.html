@@ -36,6 +36,14 @@
     <div class="code" id="rt-systemd">{{ report.systemd.services }}</div>
   </div>
 </div>
+<div class="card" style="margin-top:16px">
+  <h3>运维建议</h3>
+  <ul>
+    <li>当磁盘使用率持续升高时，运行 <code>python scripts\cleanup_runtime_data.py</code>。</li>
+    <li>当温度较高时，优先检查树莓派散热与负载。</li>
+    <li>若服务异常，先检查 <code>/health</code> 与 systemd 状态。</li>
+  </ul>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>

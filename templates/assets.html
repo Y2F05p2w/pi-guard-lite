@@ -3,12 +3,27 @@
 {% block page_title %}资产画像{% endblock %}
 {% block content %}
 <p class="subtle">展示受保护资产的重要性、类型与负责人。</p>
+<div class="toolbar">
+  <input id="assetFilter" class="search-box" placeholder="搜索 IP / 主机名 / 负责人">
+  <span class="auto-refresh">资产总数：{{ items|length }}</span>
+</div>
 <table>
   <thead><tr><th>IP</th><th>主机名</th><th>类型</th><th>重要性</th><th>负责人</th></tr></thead>
-  <tbody>
+  <tbody id="assetBody">
     {% for item in items %}
     <tr><td><a href="/assets/view/{{ item.ip }}">{{ item.ip }}</a></td><td>{{ item.hostname }}</td><td>{{ item.asset_type }}</td><td>{{ item.importance }}</td><td>{{ item.owner }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
+{% endblock %}
+{% block scripts %}
+<script>
+const assetFilter = document.getElementById('assetFilter');
+assetFilter?.addEventListener('input', () => {
+  const keyword = assetFilter.value.trim().toLowerCase();
+  document.querySelectorAll('#assetBody tr').forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+  });
+});
+</script>
 {% endblock %}

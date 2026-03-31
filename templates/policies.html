@@ -3,12 +3,28 @@
 {% block page_title %}策略中心{% endblock %}
 {% block content %}
 <p class="subtle">展示自动/手工生成的策略结果与执行状态。</p>
+<div class="toolbar">
+  <input id="policyFilter" class="search-box" placeholder="搜索动作 / 目标 / 状态">
+  <span class="auto-refresh">页面每 8 秒自动刷新</span>
+</div>
 <table>
   <thead><tr><th>ID</th><th>事件ID</th><th>动作</th><th>目标</th><th>TTL</th><th>状态</th><th>创建时间</th></tr></thead>
-  <tbody>
+  <tbody id="policyBody">
     {% for item in items %}
     <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{% if item.event_id %}<a href="/events/view/{{ item.event_id }}">{{ item.event_id }}</a>{% else %}-{% endif %}</td><td>{{ item.action }}</td><td>{{ item.target }}</td><td>{{ item.ttl }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
+{% endblock %}
+{% block scripts %}
+<script>
+const policyFilter = document.getElementById('policyFilter');
+policyFilter?.addEventListener('input', () => {
+  const keyword = policyFilter.value.trim().toLowerCase();
+  document.querySelectorAll('#policyBody tr').forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+  });
+});
+setInterval(() => location.reload(), 8000);
+</script>
 {% endblock %}

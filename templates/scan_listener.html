@@ -8,13 +8,13 @@
   <div class="card">
     <h3>当前状态</h3>
     <div class="kv">
-      <div>enabled</div><div>{{ status.enabled }}</div>
-      <div>auto_start_with_web</div><div>{{ status.auto_start_with_web }}</div>
-      <div>running</div><div>{{ status.running }}</div>
-      <div>bind_host</div><div>{{ status.bind_host }}</div>
-      <div>report_host</div><div>{{ status.report_host }}</div>
-      <div>ports</div><div>{{ status.ports }}</div>
-      <div>last_error</div><div>{{ status.last_error or '-' }}</div>
+      <div>enabled</div><div id="sl-enabled">{{ status.enabled }}</div>
+      <div>auto_start_with_web</div><div id="sl-auto">{{ status.auto_start_with_web }}</div>
+      <div>running</div><div id="sl-running">{{ status.running }}</div>
+      <div>bind_host</div><div id="sl-bind">{{ status.bind_host }}</div>
+      <div>report_host</div><div id="sl-report">{{ status.report_host }}</div>
+      <div>ports</div><div id="sl-ports">{{ status.ports }}</div>
+      <div>last_error</div><div id="sl-error">{{ status.last_error or '-' }}</div>
     </div>
   </div>
   <div class="card">
@@ -39,7 +39,13 @@ async function refreshScanStatus() {
     const resp = await fetch('/scan-listener/status', {credentials:'same-origin'});
     if (!resp.ok) return;
     const data = await resp.json();
-    document.querySelectorAll('.kv div').forEach(()=>{});
+    document.getElementById('sl-enabled').textContent = data.enabled;
+    document.getElementById('sl-auto').textContent = data.auto_start_with_web;
+    document.getElementById('sl-running').textContent = data.running;
+    document.getElementById('sl-bind').textContent = data.bind_host;
+    document.getElementById('sl-report').textContent = data.report_host;
+    document.getElementById('sl-ports').textContent = (data.ports || []).join(', ');
+    document.getElementById('sl-error').textContent = data.last_error || '-';
   } catch (e) {}
 }
 setInterval(refreshScanStatus, 5000);

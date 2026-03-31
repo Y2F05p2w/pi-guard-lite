@@ -3,12 +3,28 @@
 {% block page_title %}黑名单{% endblock %}
 {% block content %}
 <p class="subtle">记录自动封禁与手工封禁的目标列表及过期信息。</p>
+<div class="toolbar">
+  <input id="blockFilter" class="search-box" placeholder="搜索IP / 状态 / 原因">
+  <span class="auto-refresh">页面每 8 秒自动刷新</span>
+</div>
 <table>
   <thead><tr><th>ID</th><th>IP</th><th>原因</th><th>过期时间</th><th>状态</th><th>创建时间</th></tr></thead>
-  <tbody>
+  <tbody id="blockBody">
     {% for item in items %}
     <tr><td><a href="/blocklist/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.target_ip }}</td><td>{{ item.source_reason }}</td><td>{{ item.expire_at or "-" }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
+{% endblock %}
+{% block scripts %}
+<script>
+const blockFilter = document.getElementById('blockFilter');
+blockFilter?.addEventListener('input', () => {
+  const keyword = blockFilter.value.trim().toLowerCase();
+  document.querySelectorAll('#blockBody tr').forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+  });
+});
+setInterval(() => location.reload(), 8000);
+</script>
 {% endblock %}

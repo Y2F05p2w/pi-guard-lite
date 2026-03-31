@@ -8,20 +8,20 @@
   <div class="card">
     <h3>主机信息</h3>
     <div class="kv">
-      <div>hostname</div><div>{{ report.host.hostname }}</div>
-      <div>platform</div><div>{{ report.host.platform }}</div>
-      <div>python</div><div>{{ report.host.python }}</div>
-      <div>cwd</div><div>{{ report.paths.cwd }}</div>
+      <div>hostname</div><div id="rt-hostname">{{ report.host.hostname }}</div>
+      <div>platform</div><div id="rt-platform">{{ report.host.platform }}</div>
+      <div>python</div><div id="rt-python">{{ report.host.python }}</div>
+      <div>cwd</div><div id="rt-cwd">{{ report.paths.cwd }}</div>
     </div>
   </div>
   <div class="card">
     <h3>资源情况</h3>
     <div class="kv">
-      <div>disk total</div><div>{{ report.resources.disk.total }}</div>
-      <div>disk used</div><div>{{ report.resources.disk.used }}</div>
-      <div>disk free</div><div>{{ report.resources.disk.free }}</div>
-      <div>used %</div><div>{{ report.resources.disk.used_percent }}</div>
-      <div>temperature</div><div>{{ report.resources.temperature_c if report.resources.temperature_c is not none else '-' }}</div>
+      <div>disk total</div><div id="rt-disk-total">{{ report.resources.disk.total }}</div>
+      <div>disk used</div><div id="rt-disk-used">{{ report.resources.disk.used }}</div>
+      <div>disk free</div><div id="rt-disk-free">{{ report.resources.disk.free }}</div>
+      <div>used %</div><div id="rt-disk-percent">{{ report.resources.disk.used_percent }}</div>
+      <div>temperature</div><div id="rt-temp">{{ report.resources.temperature_c if report.resources.temperature_c is not none else '-' }}</div>
     </div>
   </div>
 </div>
@@ -29,11 +29,34 @@
 <div class="split" style="margin-top:16px">
   <div class="card">
     <h3>关键二进制</h3>
-    <div class="code">{{ report.binaries }}</div>
+    <div class="code" id="rt-binaries">{{ report.binaries }}</div>
   </div>
   <div class="card">
     <h3>systemd 状态</h3>
-    <div class="code">{{ report.systemd.services }}</div>
+    <div class="code" id="rt-systemd">{{ report.systemd.services }}</div>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function refreshRuntime() {
+  try {
+    const resp = await fetch('/runtime/status', {credentials:'same-origin'});
+    if (!resp.ok) return;
+    const data = await resp.json();
+    document.getElementById('rt-hostname').textContent = data.host.hostname;
+    document.getElementById('rt-platform').textContent = data.host.platform;
+    document.getElementById('rt-python').textContent = data.host.python;
+    document.getElementById('rt-cwd').textContent = data.paths.cwd;
+    document.getElementById('rt-disk-total').textContent = data.resources.disk.total;
+    document.getElementById('rt-disk-used').textContent = data.resources.disk.used;
+    document.getElementById('rt-disk-free').textContent = data.resources.disk.free;
+    document.getElementById('rt-disk-percent').textContent = data.resources.disk.used_percent;
+    document.getElementById('rt-temp').textContent = data.resources.temperature_c ?? '-';
+    document.getElementById('rt-binaries').textContent = JSON.stringify(data.binaries, null, 2);
+    document.getElementById('rt-systemd').textContent = JSON.stringify(data.systemd.services, null, 2);
+  } catch (e) {}
+}
+setInterval(refreshRuntime, 8000);
+</script>
 {% endblock %}

@@ -79,6 +79,8 @@
     .page-actions{display:flex;gap:10px;align-items:center}
     .search-box{max-width:320px}
     .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .topbar-time{font-size:12px;color:rgba(255,255,255,.85);margin-right:8px;min-width:150px;text-align:right}
+    .auto-refresh{font-size:12px;color:var(--muted);margin-left:auto}
     @media (max-width: 1000px){
       .layout{grid-template-columns:1fr}
       .sidebar{display:none}
@@ -122,14 +124,15 @@
           <div class="title-sub">Security control plane · version preview</div>
         </div>
         <div class="page-actions">
-          <span class="status-chip">
-            <span class="status-dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}"></span>
-            监听器 {% if scan_listener_status.running %}运行中{% else %}未运行{% endif %}
+          <span class="status-chip" id="scan-chip">
+            <span class="status-dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}" id="scan-dot"></span>
+            <span id="scan-text">监听器 {% if scan_listener_status.running %}运行中{% else %}未运行{% endif %}</span>
           </span>
-          <span class="status-chip">
-            <span class="status-dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}"></span>
-            通知 {% if notifier_status.enabled %}已启用{% else %}未启用{% endif %}
+          <span class="status-chip" id="notify-chip">
+            <span class="status-dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}" id="notify-dot"></span>
+            <span id="notify-text">通知 {% if notifier_status.enabled %}已启用{% else %}未启用{% endif %}</span>
           </span>
+          <span class="topbar-time" id="topbar-time"></span>
           <span style="margin-right:12px;color:rgba(255,255,255,.82)">用户：{{ current_user or 'admin' }}</span>
           <a class="btn secondary" href="/logout">退出</a>
         </div>
@@ -139,6 +142,43 @@
       </main>
     </section>
   </div>
+  <script>
+    function updateTopbarClock() {
+      const el = document.getElementById('topbar-time');
+      if (!el) return;
+      const now = new Date();
+      el.textContent = now.toLocaleString();
+    }
+    async function refreshTopbarStatus() {
+      try {
+        const [scanResp, notifyResp] = await Promise.all([
+          fetch('/scan-listener/status', {credentials:'same-origin'}),
+          fetch('/notifications/status', {credentials:'same-origin'}),
+        ]);
+        if (scanResp.ok) {
+          const data = await scanResp.json();
+          const dot = document.getElementById('scan-dot');
+          const text = document.getElementById('scan-text');
+          if (dot && text) {
+            dot.className = 'status-dot ' + (data.running ? 'ok' : 'warn');
+            text.textContent = '监听器 ' + (data.running ? '运行中' : '未运行');
+          }
+        }
+        if (notifyResp.ok) {
+          const data = await notifyResp.json();
+          const dot = document.getElementById('notify-dot');
+          const text = document.getElementById('notify-text');
+          if (dot && text) {
+            dot.className = 'status-dot ' + (data.enabled ? 'ok' : 'warn');
+            text.textContent = '通知 ' + (data.enabled ? '已启用' : '未启用');
+          }
+        }
+      } catch (e) {}
+    }
+    updateTopbarClock();
+    setInterval(updateTopbarClock, 1000);
+    setInterval(refreshTopbarStatus, 5000);
+  </script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

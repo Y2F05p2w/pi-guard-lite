@@ -9,10 +9,10 @@
 <div class="card">
   <h3>当前状态</h3>
   <div class="kv">
-    <div>enabled</div><div>{{ status.enabled }}</div>
-    <div>channel</div><div>{{ status.channel }}</div>
-    <div>webhook configured</div><div>{{ status.webhook_configured }}</div>
-    <div>timeout seconds</div><div>{{ status.timeout_seconds }}</div>
+    <div>enabled</div><div id="notify-enabled">{{ status.enabled }}</div>
+    <div>channel</div><div id="notify-channel">{{ status.channel }}</div>
+    <div>webhook configured</div><div id="notify-configured">{{ status.webhook_configured }}</div>
+    <div>timeout seconds</div><div id="notify-timeout">{{ status.timeout_seconds }}</div>
   </div>
   <div class="toolbar" style="margin-top:16px">
     <form method="post" action="/notifications/test">
@@ -20,4 +20,20 @@
     </form>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function refreshNotifier() {
+  try {
+    const resp = await fetch('/notifications/status', {credentials:'same-origin'});
+    if (!resp.ok) return;
+    const data = await resp.json();
+    document.getElementById('notify-enabled').textContent = data.enabled;
+    document.getElementById('notify-channel').textContent = data.channel;
+    document.getElementById('notify-configured').textContent = data.webhook_configured;
+    document.getElementById('notify-timeout').textContent = data.timeout_seconds;
+  } catch (e) {}
+}
+setInterval(refreshNotifier, 5000);
+</script>
 {% endblock %}

@@ -10,17 +10,26 @@ from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from app.common.assets import list_assets
+from app.common.assets import get_asset, list_assets
 from app.common.config import get_settings, resolve_path
 from app.common.dashboard import build_dashboard_summary
 from app.common.db import get_connection
-from app.common.event_store import get_analysis_result, list_events
+from app.common.event_store import get_analysis_result, get_event, get_feature, list_events
 from app.common.notifier import Notifier
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
 from app.detector.ml_engine import MLInferenceEngine
 from app.detector.model_manager import ModelManager
 from app.executor.factory import get_executor
-from app.policy.repository import list_blocklist, list_policies, list_probe_results
+from app.policy.repository import (
+    get_blocklist_entry,
+    get_policy,
+    list_blocklist,
+    list_blocklist_by_target,
+    list_policies,
+    list_policies_by_target,
+    list_probe_results,
+    list_probe_results_by_policy,
+)
 from app.policy.service import PolicyService
 from app.probe.checker import ProbeChecker
 from app.web.auth import get_auth_config, get_cookie_name, verify_credentials
@@ -175,14 +184,65 @@ def events_view(request: Request) -> HTMLResponse:
     return _render_page(request, "events.html", "events", items=list_events(limit=100))
 
 
+@router.get("/events/view/{event_id}", response_class=HTMLResponse)
+def event_detail_view(request: Request, event_id: int) -> HTMLResponse:
+    event = get_event(event_id)
+    feature = get_feature(event_id)
+    analysis = get_analysis_result(event_id)
+    parsed_analysis = None
+    if analysis:
+        parsed_analysis = dict(analysis)
+        for key in ("findings_json", "mitre_json", "impacted_assets_json"):
+            parsed_analysis[key] = json.loads(parsed_analysis[key] or "[]")
+        parsed_analysis["graph_json"] = json.loads(parsed_analysis["graph_json"] or "{}")
+    return _render_page(
+        request,
+        "event_detail.html",
+        "events",
+        event=event,
+        feature=feature,
+        analysis=parsed_analysis,
+    )
+
+
 @router.get("/policies/view", response_class=HTMLResponse)
 def policies_view(request: Request) -> HTMLResponse:
     return _render_page(request, "policies.html", "policies", items=list_policies(limit=100))
 
 
+@router.get("/policies/view/{policy_id}", response_class=HTMLResponse)
+def policy_detail_view(request: Request, policy_id: int) -> HTMLResponse:
+    policy = get_policy(policy_id)
+    probes = list_probe_results_by_policy(policy_id, limit=50)
+    related_blocklist = list_blocklist_by_target(policy["target"], limit=20) if policy else []
+    related_event = get_event(policy["event_id"]) if policy and policy.get("event_id") else None
+    return _render_page(
+        request,
+        "policy_detail.html",
+        "policies",
+        policy=policy,
+        probes=probes,
+        related_blocklist=related_blocklist,
+        related_event=related_event,
+    )
+
+
 @router.get("/blocklist/view", response_class=HTMLResponse)
 def blocklist_view(request: Request) -> HTMLResponse:
     return _render_page(request, "blocklist.html", "blocklist", items=list_blocklist(limit=100))
+
+
+@router.get("/blocklist/view/{block_id}", response_class=HTMLResponse)
+def blocklist_detail_view(request: Request, block_id: int) -> HTMLResponse:
+    entry = get_blocklist_entry(block_id)
+    related_policies = list_policies_by_target(entry["target_ip"], limit=20) if entry else []
+    return _render_page(
+        request,
+        "blocklist_detail.html",
+        "blocklist",
+        entry=entry,
+        related_policies=related_policies,
+    )
 
 
 @router.get("/probes/view", response_class=HTMLResponse)
@@ -199,6 +259,23 @@ def probes_view(request: Request) -> HTMLResponse:
 @router.get("/assets/view", response_class=HTMLResponse)
 def assets_view(request: Request) -> HTMLResponse:
     return _render_page(request, "assets.html", "assets", items=list_assets())
+
+
+@router.get("/assets/view/{ip}", response_class=HTMLResponse)
+def asset_detail_view(request: Request, ip: str) -> HTMLResponse:
+    asset = get_asset(ip)
+    related_events = [item for item in list_events(limit=200) if item.get("dst_ip") == ip or item.get("src_ip") == ip][:50]
+    related_policies = list_policies_by_target(ip, limit=50)
+    related_blocklist = list_blocklist_by_target(ip, limit=50)
+    return _render_page(
+        request,
+        "asset_detail.html",
+        "assets",
+        asset=asset,
+        related_events=related_events,
+        related_policies=related_policies,
+        related_blocklist=related_blocklist,
+    )
 
 
 @router.get("/manual/view", response_class=HTMLResponse)

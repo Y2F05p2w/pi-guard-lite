@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}黑名单详情{% endblock %}
+{% block page_title %}黑名单详情{% endblock %}
+{% block content %}
+{% if not entry %}
+<div class="card"><p>未找到黑名单记录。</p></div>
+{% else %}
+<div class="card">
+  <div class="kv">
+    <div>ID</div><div>{{ entry.id }}</div>
+    <div>IP</div><div>{{ entry.target_ip }}</div>
+    <div>原因</div><div>{{ entry.source_reason }}</div>
+    <div>状态</div><div>{{ entry.status }}</div>
+    <div>过期时间</div><div>{{ entry.expire_at or '-' }}</div>
+    <div>创建时间</div><div>{{ entry.created_at }}</div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h3>关联策略</h3>
+  <table>
+    <thead><tr><th>ID</th><th>动作</th><th>状态</th><th>创建时间</th></tr></thead>
+    <tbody>
+      {% for item in related_policies %}
+      <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.action }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

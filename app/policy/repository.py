@@ -37,6 +37,21 @@ def get_policy(policy_id: int) -> dict[str, Any] | None:
     return dict(row) if row else None
 
 
+def list_policies_by_target(target: str, limit: int = 20) -> list[dict[str, Any]]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, event_id, action, target, ttl, status, created_at
+            FROM policy
+            WHERE target = ?
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (target, limit),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
 def list_policies(limit: int = 50) -> list[dict[str, Any]]:
     with get_connection() as conn:
         rows = conn.execute(
@@ -97,6 +112,34 @@ def list_blocklist(limit: int = 50) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
+def get_blocklist_entry(block_id: int) -> dict[str, Any] | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT id, target_ip, source_reason, expire_at, status, created_at
+            FROM blocklist
+            WHERE id = ?
+            """,
+            (block_id,),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def list_blocklist_by_target(target_ip: str, limit: int = 20) -> list[dict[str, Any]]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, target_ip, source_reason, expire_at, status, created_at
+            FROM blocklist
+            WHERE target_ip = ?
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (target_ip, limit),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
 def get_expired_blocks(now: datetime | None = None) -> list[dict[str, Any]]:
     now = now or datetime.now(UTC)
     with get_connection() as conn:
@@ -140,5 +183,20 @@ def list_probe_results(limit: int = 50) -> list[dict[str, Any]]:
             LIMIT ?
             """,
             (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def list_probe_results_by_policy(policy_id: int, limit: int = 20) -> list[dict[str, Any]]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, policy_id, probe_target, result, latency_ms, created_at
+            FROM probe_result
+            WHERE policy_id = ?
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (policy_id, limit),
         ).fetchall()
     return [dict(row) for row in rows]

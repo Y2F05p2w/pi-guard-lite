@@ -7,7 +7,7 @@
   <thead><tr><th>IP</th><th>主机名</th><th>类型</th><th>重要性</th><th>负责人</th></tr></thead>
   <tbody>
     {% for item in items %}
-    <tr><td>{{ item.ip }}</td><td>{{ item.hostname }}</td><td>{{ item.asset_type }}</td><td>{{ item.importance }}</td><td>{{ item.owner }}</td></tr>
+    <tr><td><a href="/assets/view/{{ item.ip }}">{{ item.ip }}</a></td><td>{{ item.hostname }}</td><td>{{ item.asset_type }}</td><td>{{ item.importance }}</td><td>{{ item.owner }}</td></tr>
     {% endfor %}
   </tbody>
 </table>

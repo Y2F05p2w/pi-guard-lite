@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}事件详情{% endblock %}
+{% block page_title %}事件详情{% endblock %}
+{% block content %}
+{% if not event %}
+<div class="card"><p>未找到事件。</p></div>
+{% else %}
+<div class="split">
+  <div class="card">
+    <h3>基础信息</h3>
+    <div class="kv">
+      <div>ID</div><div>{{ event.id }}</div>
+      <div>时间</div><div>{{ event.ts }}</div>
+      <div>来源</div><div>{{ event.source }}</div>
+      <div>类型</div><div>{{ event.event_type }}</div>
+      <div>源IP</div><div>{{ event.src_ip or '-' }}</div>
+      <div>目的IP</div><div>{{ event.dst_ip or '-' }}</div>
+      <div>风险</div><div><span class="tag {{ event.risk_level }}">{{ event.risk_level }}</span> {{ event.risk_score }}</div>
+      <div>原始日志</div><div>{{ event.raw_path or '-' }}</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>特征快照</h3>
+    {% if feature %}
+    <div class="code">{{ feature.feature_json }}</div>
+    {% else %}
+    <p class="subtle">暂无特征记录。</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <div class="section-title">
+    <h3>高级分析</h3>
+    <a class="btn secondary" href="/analysis/view/{{ event.id }}">打开独立分析页</a>
+  </div>
+  {% if analysis %}
+  <div class="code">{{ analysis.summary }}</div>
+  <table style="margin-top:16px">
+    <thead><tr><th>Finding</th><th>分类</th><th>置信度</th></tr></thead>
+    <tbody>
+      {% for item in analysis.findings_json %}
+      <tr><td>{{ item.name }}</td><td>{{ item.category }}</td><td>{{ item.confidence }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="subtle">暂无高级分析结果。</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

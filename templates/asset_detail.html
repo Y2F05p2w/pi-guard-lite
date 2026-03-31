@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}资产详情{% endblock %}
+{% block page_title %}资产详情{% endblock %}
+{% block content %}
+{% if not asset %}
+<div class="card"><p>未找到资产。</p></div>
+{% else %}
+<div class="card">
+  <div class="kv">
+    <div>IP</div><div>{{ asset.ip }}</div>
+    <div>主机名</div><div>{{ asset.hostname }}</div>
+    <div>类型</div><div>{{ asset.asset_type }}</div>
+    <div>重要性</div><div>{{ asset.importance }}</div>
+    <div>负责人</div><div>{{ asset.owner }}</div>
+  </div>
+</div>
+
+<div class="split" style="margin-top:16px">
+  <div class="card">
+    <h3>关联事件</h3>
+    <table>
+      <thead><tr><th>ID</th><th>类型</th><th>源IP</th><th>风险</th></tr></thead>
+      <tbody>
+        {% for item in related_events %}
+        <tr><td><a href="/events/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.event_type }}</td><td>{{ item.src_ip or '-' }}</td><td>{{ item.risk_level }} / {{ item.risk_score }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>关联策略</h3>
+    <table>
+      <thead><tr><th>ID</th><th>动作</th><th>状态</th></tr></thead>
+      <tbody>
+        {% for item in related_policies %}
+        <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.action }}</td><td>{{ item.status }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h3 style="margin-top:16px">关联黑名单</h3>
+    <table>
+      <thead><tr><th>ID</th><th>状态</th><th>过期</th></tr></thead>
+      <tbody>
+        {% for item in related_blocklist %}
+        <tr><td><a href="/blocklist/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.status }}</td><td>{{ item.expire_at or '-' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

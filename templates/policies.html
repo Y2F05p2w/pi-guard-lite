@@ -7,7 +7,7 @@
   <thead><tr><th>ID</th><th>事件ID</th><th>动作</th><th>目标</th><th>TTL</th><th>状态</th><th>创建时间</th></tr></thead>
   <tbody>
     {% for item in items %}
-    <tr><td>{{ item.id }}</td><td>{{ item.event_id or "-" }}</td><td>{{ item.action }}</td><td>{{ item.target }}</td><td>{{ item.ttl }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
+    <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{% if item.event_id %}<a href="/events/view/{{ item.event_id }}">{{ item.event_id }}</a>{% else %}-{% endif %}</td><td>{{ item.action }}</td><td>{{ item.target }}</td><td>{{ item.ttl }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
     {% endfor %}
   </tbody>
 </table>

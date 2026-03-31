@@ -28,6 +28,10 @@ def list_assets() -> list[dict]:
     return list(load_assets().values())
 
 
+def get_asset(ip: str) -> dict | None:
+    return load_assets().get(ip)
+
+
 def get_asset_importance(ip: str | None) -> int:
     if not ip:
         return 1

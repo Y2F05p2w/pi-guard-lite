@@ -76,6 +76,39 @@ def list_events(limit: int = 50) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
+def get_event(event_id: int) -> dict[str, Any] | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT id, ts, source, src_ip, dst_ip, event_type, severity,
+                   anomaly_score, ml_score, risk_score, risk_level, raw_path
+            FROM event
+            WHERE id = ?
+            """,
+            (event_id,),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def get_feature(event_id: int) -> dict[str, Any] | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT id, event_id, feature_json, created_at
+            FROM feature
+            WHERE event_id = ?
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (event_id,),
+        ).fetchone()
+    if not row:
+        return None
+    payload = dict(row)
+    payload["feature_json"] = json.loads(payload["feature_json"] or "{}")
+    return payload
+
+
 def upsert_analysis_result(event_id: int, result: AnalysisResult) -> None:
     graph_json = {
         "nodes": [item.model_dump() for item in result.graph_nodes],

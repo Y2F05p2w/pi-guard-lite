@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}系统总览{% endblock %}
+{% block page_title %}系统总览{% endblock %}
+{% block breadcrumb %}系统总览{% endblock %}
+{% block content %}
+<p class="subtle">统一汇总监听器、通知、模型和运行状态，作为系统配置与部署入口。</p>
+
+<div class="grid">
+  <div class="card">
+    <h3>扫描监听</h3>
+    <div class="kv">
+      <div>enabled</div><div>{{ summary.scan_listener.enabled }}</div>
+      <div>running</div><div>{{ summary.scan_listener.running }}</div>
+      <div>bind_host</div><div>{{ summary.scan_listener.bind_host }}</div>
+      <div>ports</div><div>{{ summary.scan_listener.ports }}</div>
+    </div>
+    <div class="toolbar" style="margin-top:16px"><a class="btn secondary" href="/scan-listener/view">查看详情</a></div>
+  </div>
+  <div class="card">
+    <h3>通知状态</h3>
+    <div class="kv">
+      <div>enabled</div><div>{{ summary.notifier.enabled }}</div>
+      <div>channel</div><div>{{ summary.notifier.channel }}</div>
+      <div>configured</div><div>{{ summary.notifier.webhook_configured }}</div>
+      <div>timeout</div><div>{{ summary.notifier.timeout_seconds }}</div>
+    </div>
+    <div class="toolbar" style="margin-top:16px"><a class="btn secondary" href="/notifications/view">查看详情</a></div>
+  </div>
+  <div class="card">
+    <h3>模型状态</h3>
+    <div class="kv">
+      <div>版本记录</div><div>{{ summary.models.count }}</div>
+      <div>Anomaly</div><div>{{ summary.models.active_versions.get('anomaly', {}).get('version', '-') }}</div>
+      <div>Classifier</div><div>{{ summary.models.active_versions.get('classifier', {}).get('version', '-') }}</div>
+    </div>
+    <div class="toolbar" style="margin-top:16px"><a class="btn secondary" href="/models/view">查看详情</a></div>
+  </div>
+</div>
+
+<div class="split" style="margin-top:16px">
+  <div class="card">
+    <h3>运行概况</h3>
+    <div class="kv">
+      <div>hostname</div><div>{{ summary.runtime.host.hostname }}</div>
+      <div>platform</div><div>{{ summary.runtime.host.platform }}</div>
+      <div>python</div><div>{{ summary.runtime.host.python }}</div>
+      <div>disk %</div><div>{{ summary.runtime.resources.disk.used_percent }}</div>
+      <div>temperature</div><div>{{ summary.runtime.resources.temperature_c if summary.runtime.resources.temperature_c is not none else '-' }}</div>
+    </div>
+    <div class="toolbar" style="margin-top:16px"><a class="btn secondary" href="/runtime/view">查看详情</a></div>
+  </div>
+  <div class="card">
+    <h3>systemd</h3>
+    <div class="code">{{ summary.runtime.systemd.services }}</div>
+  </div>
+</div>
+{% endblock %}

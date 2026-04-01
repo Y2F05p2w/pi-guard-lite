@@ -424,6 +424,23 @@ def runtime_view(request: Request) -> HTMLResponse:
     )
 
 
+@router.get("/system/view", response_class=HTMLResponse)
+def system_view(request: Request) -> HTMLResponse:
+    scan_listener_service = getattr(request.app.state, "scan_listener_service", None)
+    summary = {
+        "scan_listener": scan_listener_service.status() if scan_listener_service else {},
+        "notifier": Notifier().status(),
+        "runtime": collect_runtime_report(),
+        "models": ModelManager().get_status(),
+    }
+    return _render_page(
+        request,
+        "system_overview.html",
+        "system",
+        summary=summary,
+    )
+
+
 @router.get("/ml/status")
 def ml_status() -> dict:
     engine = MLInferenceEngine()

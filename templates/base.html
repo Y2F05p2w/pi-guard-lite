@@ -166,6 +166,7 @@
     textarea{min-height:100px}
     .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px}
     .auto-refresh{font-size:12px;color:var(--muted);margin-left:auto}
+    .menu-note{font-size:11px;color:#97a6ba;padding:0 12px 10px 12px}
     table{
       width:100%;
       border-collapse:collapse;
@@ -247,20 +248,24 @@
             <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">高级分析</a>
             <a href="/scan-listener/view" class="{% if active_nav == 'scan_listener' %}active{% endif %}">扫描监听</a>
           </div>
+          <div class="menu-note">事件监控、威胁分析与扫描监听</div>
           <h3>处置策略</h3>
           <div class="menu">
             <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">策略中心</a>
             <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">黑名单</a>
             <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">手工处置</a>
           </div>
+          <div class="menu-note">封禁、回滚与人工干预</div>
           <h3>资源运营</h3>
           <div class="menu">
             <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产画像</a>
             <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">探测回滚</a>
             <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型管理</a>
             <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知管理</a>
+            <a href="/system/view" class="{% if active_nav == 'system' %}active{% endif %}">系统总览</a>
             <a href="/runtime/view" class="{% if active_nav == 'runtime' %}active{% endif %}">运行状态</a>
           </div>
+          <div class="menu-note">模型、通知、部署与运行状态</div>
         </div>
       </aside>
 

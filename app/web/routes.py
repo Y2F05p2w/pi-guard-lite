@@ -15,7 +15,7 @@ from app.common.config import get_settings, resolve_path
 from app.common.dashboard import build_dashboard_summary
 from app.common.db import get_connection
 from app.common.event_store import get_analysis_result, get_event, get_feature, list_events
-from app.common.listing import paginate, sort_items
+from app.common.listing import build_list_payload
 from app.common.notifier import Notifier
 from app.common.runtime_checks import collect_runtime_report
 from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
@@ -61,6 +61,115 @@ def _render_page(request: Request, template_name: str, active_nav: str, **contex
     }
     ctx.update(context)
     return templates.TemplateResponse(request=request, name=template_name, context=ctx)
+
+
+def _build_events_payload(
+    *,
+    page: int,
+    page_size: int,
+    sort_by: str,
+    sort_order: str,
+    query: str = "",
+) -> dict:
+    return build_list_payload(
+        list_events(limit=1000),
+        page=page,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_sort_fields={"id", "event_type", "source", "risk_score", "risk_level", "ts"},
+        query=query,
+        search_fields=["event_type", "source", "src_ip", "dst_ip", "risk_level"],
+    )
+
+
+def _build_policies_payload(
+    *,
+    page: int,
+    page_size: int,
+    sort_by: str,
+    sort_order: str,
+    query: str = "",
+) -> dict:
+    return build_list_payload(
+        list_policies(limit=1000),
+        page=page,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_sort_fields={"id", "action", "target", "status", "created_at", "ttl"},
+        query=query,
+        search_fields=["action", "target", "status"],
+    )
+
+
+def _build_blocklist_payload(
+    *,
+    page: int,
+    page_size: int,
+    sort_by: str,
+    sort_order: str,
+    query: str = "",
+) -> dict:
+    return build_list_payload(
+        list_blocklist(limit=1000),
+        page=page,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_sort_fields={"id", "target_ip", "status", "expire_at", "created_at"},
+        query=query,
+        search_fields=["target_ip", "source_reason", "status"],
+    )
+
+
+def _build_probe_payload(
+    *,
+    page: int,
+    page_size: int,
+    sort_by: str,
+    sort_order: str,
+    query: str = "",
+) -> dict:
+    items = list_probe_results(limit=1000)
+    summary = {
+        "total": len(items),
+        "success": len([item for item in items if item["result"] == "success"]),
+        "failed": len([item for item in items if item["result"] != "success"]),
+    }
+    return build_list_payload(
+        items,
+        page=page,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_sort_fields={"id", "result", "latency_ms", "created_at"},
+        query=query,
+        search_fields=["probe_target", "result", "policy_id"],
+        summary=summary,
+    )
+
+
+def _build_assets_payload(
+    *,
+    page: int,
+    page_size: int,
+    sort_by: str,
+    sort_order: str,
+    query: str = "",
+) -> dict:
+    items = list_assets()
+    return build_list_payload(
+        items,
+        page=page,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_sort_fields={"ip", "hostname", "asset_type", "importance", "owner"},
+        query=query,
+        search_fields=["ip", "hostname", "asset_type", "owner"],
+        summary={"total": len(items)},
+    )
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -142,6 +251,17 @@ def events(limit: int = 20) -> list[dict]:
     return list_events(limit=limit)
 
 
+@router.get("/api/events")
+def events_api(
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+    q: str = "",
+) -> dict:
+    return _build_events_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order, query=q)
+
+
 @router.get("/analysis/event/{event_id}")
 def analysis_event(event_id: int) -> dict:
     result = get_analysis_result(event_id)
@@ -171,14 +291,58 @@ def policies(limit: int = 20) -> list[dict]:
     return list_policies(limit=limit)
 
 
+@router.get("/api/policies")
+def policies_api(
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+    q: str = "",
+) -> dict:
+    return _build_policies_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order, query=q)
+
+
 @router.get("/blocklist")
 def blocklist(limit: int = 20) -> list[dict]:
     return list_blocklist(limit=limit)
 
 
+@router.get("/api/blocklist")
+def blocklist_api(
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+    q: str = "",
+) -> dict:
+    return _build_blocklist_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order, query=q)
+
+
 @router.get("/assets")
 def assets() -> list[dict]:
     return list_assets()
+
+
+@router.get("/api/assets")
+def assets_api(
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "ip",
+    sort_order: str = "asc",
+    q: str = "",
+) -> dict:
+    return _build_assets_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order, query=q)
+
+
+@router.get("/api/probes")
+def probes_api(
+    page: int = 1,
+    page_size: int = 20,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+    q: str = "",
+) -> dict:
+    return _build_probe_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order, query=q)
 
 
 @router.get("/events/view", response_class=HTMLResponse)
@@ -189,16 +353,12 @@ def events_view(
     sort_by: str = "id",
     sort_order: str = "desc",
 ) -> HTMLResponse:
-    items = sort_items(list_events(limit=1000), sort_by, sort_order, {"id", "event_type", "source", "risk_score", "risk_level"})
-    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    payload = _build_events_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order)
     return _render_page(
         request,
         "events.html",
         "events",
-        items=page_items,
-        pagination=pagination,
-        sort_by=sort_by,
-        sort_order=sort_order,
+        **payload,
     )
 
 
@@ -231,16 +391,12 @@ def policies_view(
     sort_by: str = "id",
     sort_order: str = "desc",
 ) -> HTMLResponse:
-    items = sort_items(list_policies(limit=1000), sort_by, sort_order, {"id", "action", "target", "status", "created_at"})
-    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    payload = _build_policies_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order)
     return _render_page(
         request,
         "policies.html",
         "policies",
-        items=page_items,
-        pagination=pagination,
-        sort_by=sort_by,
-        sort_order=sort_order,
+        **payload,
     )
 
 
@@ -269,16 +425,12 @@ def blocklist_view(
     sort_by: str = "id",
     sort_order: str = "desc",
 ) -> HTMLResponse:
-    items = sort_items(list_blocklist(limit=1000), sort_by, sort_order, {"id", "target_ip", "status", "expire_at", "created_at"})
-    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    payload = _build_blocklist_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order)
     return _render_page(
         request,
         "blocklist.html",
         "blocklist",
-        items=page_items,
-        pagination=pagination,
-        sort_by=sort_by,
-        sort_order=sort_order,
+        **payload,
     )
 
 
@@ -303,22 +455,12 @@ def probes_view(
     sort_by: str = "id",
     sort_order: str = "desc",
 ) -> HTMLResponse:
-    items = sort_items(list_probe_results(limit=1000), sort_by, sort_order, {"id", "result", "latency_ms", "created_at"})
-    summary = {
-        "total": len(items),
-        "success": len([item for item in items if item["result"] == "success"]),
-        "failed": len([item for item in items if item["result"] != "success"]),
-    }
-    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    payload = _build_probe_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order)
     return _render_page(
         request,
         "probes.html",
         "probes",
-        items=page_items,
-        summary=summary,
-        pagination=pagination,
-        sort_by=sort_by,
-        sort_order=sort_order,
+        **payload,
     )
 
 
@@ -330,16 +472,12 @@ def assets_view(
     sort_by: str = "ip",
     sort_order: str = "asc",
 ) -> HTMLResponse:
-    items = sort_items(list_assets(), sort_by, sort_order, {"ip", "hostname", "asset_type", "importance", "owner"})
-    page_items, pagination = paginate(items, page=page, page_size=page_size)
+    payload = _build_assets_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order)
     return _render_page(
         request,
         "assets.html",
         "assets",
-        items=page_items,
-        pagination=pagination,
-        sort_by=sort_by,
-        sort_order=sort_order,
+        **payload,
     )
 
 

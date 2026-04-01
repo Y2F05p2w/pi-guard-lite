@@ -3,34 +3,93 @@
 {% block page_title %}黑名单{% endblock %}
 {% block breadcrumb %}黑名单{% endblock %}
 {% block content %}
-<p class="subtle">记录自动封禁与手工封禁的目标列表及过期信息。</p>
-<div class="toolbar">
-  <input id="blockFilter" class="search-box" placeholder="搜索IP / 状态 / 原因">
-  <span class="auto-refresh">页面每 8 秒自动刷新</span>
-</div>
-<table>
-  <thead><tr><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=id&sort_order={{ 'asc' if sort_by=='id' and sort_order=='desc' else 'desc' }}">ID</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=target_ip&sort_order={{ 'asc' if sort_by=='target_ip' and sort_order=='desc' else 'desc' }}">IP</a></th><th>原因</th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=expire_at&sort_order={{ 'asc' if sort_by=='expire_at' and sort_order=='desc' else 'desc' }}">过期时间</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=status&sort_order={{ 'asc' if sort_by=='status' and sort_order=='desc' else 'desc' }}">状态</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=created_at&sort_order={{ 'asc' if sort_by=='created_at' and sort_order=='desc' else 'desc' }}">创建时间</a></th></tr></thead>
-  <tbody id="blockBody">
-    {% for item in items %}
-    <tr><td><a href="/blocklist/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.target_ip }}</td><td>{{ item.source_reason }}</td><td>{{ item.expire_at or "-" }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-<div class="toolbar" style="margin-top:16px">
-  <span class="auto-refresh">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
-  {% if pagination.has_prev %}<a class="btn secondary" href="?page={{ pagination.prev_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">上一页</a>{% endif %}
-  {% if pagination.has_next %}<a class="btn secondary" href="?page={{ pagination.next_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">下一页</a>{% endif %}
+<p class="subtle">记录自动封禁与手工封禁的目标列表及其过期信息，支持无刷新分页与检索。</p>
+
+<div class="card table-panel">
+  <div class="loading-mask" id="blocklistLoading">正在刷新黑名单数据...</div>
+  <div class="card-header">
+    <div>
+      <h3>阻断名单</h3>
+      <div class="subtle" style="margin:6px 0 0 0">查看当前阻断目标、原因、状态和过期时间</div>
+    </div>
+    <span class="pill">8 秒自动刷新</span>
+  </div>
+  <div class="toolbar">
+    <input id="blocklistFilter" class="search-box" placeholder="搜索目标 IP / 原因 / 状态">
+    <select id="blocklistPageSize">
+      <option value="10">10 条/页</option>
+      <option value="20" selected>20 条/页</option>
+      <option value="50">50 条/页</option>
+    </select>
+    <button class="btn ghost" id="blocklistRefresh">立即刷新</button>
+    <div class="toolbar-right"><span class="auto-refresh" id="blocklistTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th><button class="link-sort" data-grid="blocklist" data-sort="id">ID <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="blocklist" data-sort="target_ip">目标 IP <span class="sort-arrow"></span></button></th>
+        <th>原因</th>
+        <th><button class="link-sort" data-grid="blocklist" data-sort="expire_at">过期时间 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="blocklist" data-sort="status">状态 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="blocklist" data-sort="created_at">创建时间 <span class="sort-arrow"></span></button></th>
+      </tr>
+    </thead>
+    <tbody id="blocklistBody">
+      {% for item in items %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.target_ip }}</td>
+        <td>{{ item.source_reason }}</td>
+        <td>{{ item.expire_at or '-' }}</td>
+        <td>{{ item.status }}</td>
+        <td>{{ item.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pager">
+    <span class="auto-refresh" id="blocklistPageInfo">{{ pagination.page }} / {{ pagination.total_pages }}</span>
+    <div class="pager-actions">
+      <button class="btn secondary" id="blocklistPrev">上一页</button>
+      <button class="btn secondary" id="blocklistNext">下一页</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-const blockFilter = document.getElementById('blockFilter');
-blockFilter?.addEventListener('input', () => {
-  const keyword = blockFilter.value.trim().toLowerCase();
-  document.querySelectorAll('#blockBody tr').forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
-  });
+PiGuardUI.mountGrid({
+  name: 'blocklist',
+  api: '/api/blocklist',
+  bodyId: 'blocklistBody',
+  totalId: 'blocklistTotal',
+  prevId: 'blocklistPrev',
+  nextId: 'blocklistNext',
+  pageId: 'blocklistPageInfo',
+  pageSizeId: 'blocklistPageSize',
+  searchId: 'blocklistFilter',
+  refreshId: 'blocklistRefresh',
+  loadingId: 'blocklistLoading',
+  page: {{ pagination.page }},
+  pageSize: {{ pagination.page_size }},
+  sortBy: {{ sort_by|tojson }},
+  sortOrder: {{ sort_order|tojson }},
+  query: {{ query|default('', true)|tojson }},
+  refreshMs: 8000,
+  colspan: 6,
+  renderRow(item) {
+    return `
+      <tr class="clickable" onclick="window.location='/blocklist/view/${encodeURIComponent(item.id)}'">
+        <td>${PiGuardUI.escapeHtml(item.id)}</td>
+        <td>${PiGuardUI.escapeHtml(item.target_ip || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.source_reason || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.expire_at || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.status || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.created_at || '-')}</td>
+      </tr>
+    `;
+  },
 });
-setInterval(() => location.reload(), 8000);
 </script>
 {% endblock %}

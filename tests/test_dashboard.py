@@ -43,3 +43,7 @@ class DashboardSummaryTestCase(unittest.TestCase):
         self.assertEqual(result["stats"]["events"], 1)
         self.assertEqual(result["risk_summary"]["critical"], 1)
         self.assertEqual(result["stats"]["policies"], 1)
+        self.assertIn("event_type_summary", result)
+        self.assertIn("policy_action_summary", result)
+        self.assertEqual(result["event_type_summary"][0]["label"], "suricata.alert")
+        self.assertEqual(result["policy_action_summary"][0]["label"], "block_ip")

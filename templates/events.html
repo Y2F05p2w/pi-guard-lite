@@ -3,58 +3,113 @@
 {% block page_title %}事件中心{% endblock %}
 {% block breadcrumb %}事件中心{% endblock %}
 {% block content %}
-<p class="subtle">统一展示流量、系统日志、EDR 与样本分析输入后的结构化事件。</p>
-<div class="toolbar">
-  <input id="eventsFilter" class="search-box" placeholder="搜索事件类型 / 源IP / 目的IP">
-  <a class="btn secondary" href="/scan-listener/status">监听状态</a>
-  <span class="auto-refresh">页面每 8 秒自动刷新</span>
-</div>
-<table>
-  <thead>
-    <tr>
-      <th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=id&sort_order={{ 'asc' if sort_by=='id' and sort_order=='desc' else 'desc' }}">ID</a></th>
-      <th>时间</th>
-      <th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=source&sort_order={{ 'asc' if sort_by=='source' and sort_order=='desc' else 'desc' }}">来源</a></th>
-      <th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=event_type&sort_order={{ 'asc' if sort_by=='event_type' and sort_order=='desc' else 'desc' }}">类型</a></th>
-      <th>源IP</th><th>目的IP</th><th>异常分</th><th>ML分</th>
-      <th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=risk_score&sort_order={{ 'asc' if sort_by=='risk_score' and sort_order=='desc' else 'desc' }}">风险</a></th>
-      <th>分析</th>
-    </tr>
-  </thead>
-  <tbody id="eventsBody">
-    {% for item in items %}
-    <tr>
-      <td>{{ item.id }}</td>
-      <td>{{ item.ts }}</td>
-      <td>{{ item.source }}</td>
-      <td>{{ item.event_type }}</td>
-      <td>{{ item.src_ip or "-" }}</td>
-      <td>{{ item.dst_ip or "-" }}</td>
-      <td>{{ item.anomaly_score }}</td>
-      <td>{{ item.ml_score }}</td>
-      <td><span class="tag {{ item.risk_level }}">{{ item.risk_level }}</span> {{ item.risk_score }}</td>
-      <td><a href="/analysis/view/{{ item.id }}">查看</a></td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-<div class="toolbar" style="margin-top:16px">
-  <span class="auto-refresh">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
-  {% if pagination.has_prev %}<a class="btn secondary" href="?page={{ pagination.prev_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">上一页</a>{% endif %}
-  {% if pagination.has_next %}<a class="btn secondary" href="?page={{ pagination.next_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">下一页</a>{% endif %}
+<p class="subtle">统一展示流量、系统日志、EDR 与样本分析输入后的结构化事件，支持无刷新检索、分页与排序。</p>
+
+<div class="card table-panel">
+  <div class="loading-mask" id="eventsLoading">正在刷新事件数据...</div>
+  <div class="card-header">
+    <div>
+      <h3>威胁事件列表</h3>
+      <div class="subtle" style="margin:6px 0 0 0">按来源、类型、风险与 IP 进行统一查看</div>
+    </div>
+    <div class="toolbar-right">
+      <span class="pill">8 秒自动刷新</span>
+      <a class="btn secondary" href="/scan-listener/status">监听状态</a>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input id="eventsFilter" class="search-box" placeholder="搜索事件类型 / 来源 / 源IP / 目的IP / 风险等级">
+    <select id="eventsPageSize">
+      <option value="10">10 条/页</option>
+      <option value="20" selected>20 条/页</option>
+      <option value="50">50 条/页</option>
+    </select>
+    <button class="btn ghost" id="eventsRefresh">立即刷新</button>
+    <div class="toolbar-right">
+      <span class="auto-refresh" id="eventsTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th><button class="link-sort" data-grid="events" data-sort="id">ID <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="events" data-sort="ts">时间 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="events" data-sort="source">来源 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="events" data-sort="event_type">类型 <span class="sort-arrow"></span></button></th>
+        <th>源 IP</th>
+        <th>目的 IP</th>
+        <th>异常分</th>
+        <th>ML 分</th>
+        <th><button class="link-sort" data-grid="events" data-sort="risk_score">风险 <span class="sort-arrow"></span></button></th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="eventsBody">
+      {% for item in items %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.ts }}</td>
+        <td>{{ item.source }}</td>
+        <td>{{ item.event_type }}</td>
+        <td>{{ item.src_ip or '-' }}</td>
+        <td>{{ item.dst_ip or '-' }}</td>
+        <td>{{ item.anomaly_score }}</td>
+        <td>{{ item.ml_score }}</td>
+        <td><span class="tag {{ item.risk_level }}">{{ item.risk_level }}</span> {{ item.risk_score }}</td>
+        <td><a href="/events/view/{{ item.id }}">详情</a> / <a href="/analysis/view/{{ item.id }}">分析</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pager">
+    <span class="auto-refresh" id="eventsPageInfo">{{ pagination.page }} / {{ pagination.total_pages }}</span>
+    <div class="pager-actions">
+      <button class="btn secondary" id="eventsPrev">上一页</button>
+      <button class="btn secondary" id="eventsNext">下一页</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-const filterInput = document.getElementById('eventsFilter');
-filterInput?.addEventListener('input', () => {
-  const keyword = filterInput.value.trim().toLowerCase();
-  document.querySelectorAll('#eventsBody tr').forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
-  });
+PiGuardUI.mountGrid({
+  name: 'events',
+  api: '/api/events',
+  bodyId: 'eventsBody',
+  totalId: 'eventsTotal',
+  prevId: 'eventsPrev',
+  nextId: 'eventsNext',
+  pageId: 'eventsPageInfo',
+  pageSizeId: 'eventsPageSize',
+  searchId: 'eventsFilter',
+  refreshId: 'eventsRefresh',
+  loadingId: 'eventsLoading',
+  page: {{ pagination.page }},
+  pageSize: {{ pagination.page_size }},
+  sortBy: {{ sort_by|tojson }},
+  sortOrder: {{ sort_order|tojson }},
+  query: {{ query|default('', true)|tojson }},
+  refreshMs: 8000,
+  colspan: 10,
+  renderRow(item) {
+    return `
+      <tr class="clickable" onclick="window.location='/events/view/${encodeURIComponent(item.id)}'">
+        <td>${PiGuardUI.escapeHtml(item.id)}</td>
+        <td>${PiGuardUI.escapeHtml(item.ts || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.source || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.event_type || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.src_ip || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.dst_ip || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.anomaly_score ?? '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.ml_score ?? '-')}</td>
+        <td><span class="tag ${PiGuardUI.escapeHtml(item.risk_level || 'info')}">${PiGuardUI.escapeHtml(item.risk_level || 'info')}</span> ${PiGuardUI.escapeHtml(item.risk_score ?? '-')}</td>
+        <td><a href="/analysis/view/${encodeURIComponent(item.id)}" onclick="event.stopPropagation()">分析</a></td>
+      </tr>
+    `;
+  },
 });
-setInterval(() => {
-  if (!document.hidden) location.reload();
-}, 8000);
 </script>
 {% endblock %}

@@ -3,40 +3,105 @@
 {% block page_title %}探测与回滚{% endblock %}
 {% block breadcrumb %}探测与回滚{% endblock %}
 {% block content %}
+<p class="subtle">统一查看防御策略后的业务探测结果与自动回滚链路，支持无刷新更新。</p>
+
 <div class="grid">
-  <div class="card"><div class="stat-title">总探测数</div><div class="stat-value">{{ summary.total }}</div></div>
-  <div class="card"><div class="stat-title">成功</div><div class="stat-value" style="color:var(--success)">{{ summary.success }}</div></div>
-  <div class="card"><div class="stat-title">失败</div><div class="stat-value" style="color:var(--danger)">{{ summary.failed }}</div></div>
+  <div class="card"><div class="stat-title">总探测数</div><div class="stat-value" id="probe-total">{{ summary.total }}</div></div>
+  <div class="card"><div class="stat-title">成功</div><div class="stat-value" style="color:var(--success)" id="probe-success">{{ summary.success }}</div></div>
+  <div class="card"><div class="stat-title">失败</div><div class="stat-value" style="color:var(--danger)" id="probe-failed">{{ summary.failed }}</div></div>
 </div>
-<div class="toolbar" style="margin-top:16px">
-  <input id="probeFilter" class="search-box" placeholder="搜索目标 / 结果">
-  <span class="auto-refresh">页面每 8 秒自动刷新</span>
-</div>
-<div class="card" style="margin-top:16px;padding:0">
+
+<div class="card table-panel" style="margin-top:16px">
+  <div class="loading-mask" id="probesLoading">正在刷新探测数据...</div>
+  <div class="card-header">
+    <div>
+      <h3>探测记录</h3>
+      <div class="subtle" style="margin:6px 0 0 0">用于验证策略是否影响业务，并触发必要回滚</div>
+    </div>
+    <span class="pill">8 秒自动刷新</span>
+  </div>
+  <div class="toolbar">
+    <input id="probesFilter" class="search-box" placeholder="搜索策略ID / 目标 / 结果">
+    <select id="probesPageSize">
+      <option value="10">10 条/页</option>
+      <option value="20" selected>20 条/页</option>
+      <option value="50">50 条/页</option>
+    </select>
+    <button class="btn ghost" id="probesRefresh">立即刷新</button>
+    <div class="toolbar-right"><span class="auto-refresh" id="probesTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span></div>
+  </div>
   <table>
-    <thead><tr><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=id&sort_order={{ 'asc' if sort_by=='id' and sort_order=='desc' else 'desc' }}">ID</a></th><th>策略ID</th><th>目标</th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=result&sort_order={{ 'asc' if sort_by=='result' and sort_order=='desc' else 'desc' }}">结果</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=latency_ms&sort_order={{ 'asc' if sort_by=='latency_ms' and sort_order=='desc' else 'desc' }}">延迟(ms)</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=created_at&sort_order={{ 'asc' if sort_by=='created_at' and sort_order=='desc' else 'desc' }}">时间</a></th></tr></thead>
-    <tbody id="probeBody">
+    <thead>
+      <tr>
+        <th><button class="link-sort" data-grid="probes" data-sort="id">ID <span class="sort-arrow"></span></button></th>
+        <th>策略ID</th>
+        <th>目标</th>
+        <th><button class="link-sort" data-grid="probes" data-sort="result">结果 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="probes" data-sort="latency_ms">延迟(ms) <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="probes" data-sort="created_at">时间 <span class="sort-arrow"></span></button></th>
+      </tr>
+    </thead>
+    <tbody id="probesBody">
       {% for item in items %}
-      <tr><td>{{ item.id }}</td><td>{{ item.policy_id or "-" }}</td><td>{{ item.probe_target }}</td><td>{{ item.result }}</td><td>{{ item.latency_ms or "-" }}</td><td>{{ item.created_at }}</td></tr>
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.policy_id or '-' }}</td>
+        <td>{{ item.probe_target }}</td>
+        <td>{{ item.result }}</td>
+        <td>{{ item.latency_ms or '-' }}</td>
+        <td>{{ item.created_at }}</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
-</div>
-<div class="toolbar" style="margin-top:16px">
-  <span class="auto-refresh">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
-  {% if pagination.has_prev %}<a class="btn secondary" href="?page={{ pagination.prev_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">上一页</a>{% endif %}
-  {% if pagination.has_next %}<a class="btn secondary" href="?page={{ pagination.next_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">下一页</a>{% endif %}
+  <div class="pager">
+    <span class="auto-refresh" id="probesPageInfo">{{ pagination.page }} / {{ pagination.total_pages }}</span>
+    <div class="pager-actions">
+      <button class="btn secondary" id="probesPrev">上一页</button>
+      <button class="btn secondary" id="probesNext">下一页</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-const probeFilter = document.getElementById('probeFilter');
-probeFilter?.addEventListener('input', () => {
-  const keyword = probeFilter.value.trim().toLowerCase();
-  document.querySelectorAll('#probeBody tr').forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
-  });
+PiGuardUI.mountGrid({
+  name: 'probes',
+  api: '/api/probes',
+  bodyId: 'probesBody',
+  totalId: 'probesTotal',
+  prevId: 'probesPrev',
+  nextId: 'probesNext',
+  pageId: 'probesPageInfo',
+  pageSizeId: 'probesPageSize',
+  searchId: 'probesFilter',
+  refreshId: 'probesRefresh',
+  loadingId: 'probesLoading',
+  page: {{ pagination.page }},
+  pageSize: {{ pagination.page_size }},
+  sortBy: {{ sort_by|tojson }},
+  sortOrder: {{ sort_order|tojson }},
+  query: {{ query|default('', true)|tojson }},
+  refreshMs: 8000,
+  colspan: 6,
+  onData(data) {
+    const summary = data.summary || {};
+    document.getElementById('probe-total').textContent = summary.total || 0;
+    document.getElementById('probe-success').textContent = summary.success || 0;
+    document.getElementById('probe-failed').textContent = summary.failed || 0;
+  },
+  renderRow(item) {
+    return `
+      <tr>
+        <td>${PiGuardUI.escapeHtml(item.id)}</td>
+        <td>${PiGuardUI.escapeHtml(item.policy_id || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.probe_target || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.result || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.latency_ms ?? '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.created_at || '-')}</td>
+      </tr>
+    `;
+  },
 });
-setInterval(() => location.reload(), 8000);
 </script>
 {% endblock %}

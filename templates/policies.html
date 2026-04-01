@@ -3,34 +3,96 @@
 {% block page_title %}策略中心{% endblock %}
 {% block breadcrumb %}策略中心{% endblock %}
 {% block content %}
-<p class="subtle">展示自动/手工生成的策略结果与执行状态。</p>
-<div class="toolbar">
-  <input id="policyFilter" class="search-box" placeholder="搜索动作 / 目标 / 状态">
-  <span class="auto-refresh">页面每 8 秒自动刷新</span>
-</div>
-<table>
-  <thead><tr><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=id&sort_order={{ 'asc' if sort_by=='id' and sort_order=='desc' else 'desc' }}">ID</a></th><th>事件ID</th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=action&sort_order={{ 'asc' if sort_by=='action' and sort_order=='desc' else 'desc' }}">动作</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=target&sort_order={{ 'asc' if sort_by=='target' and sort_order=='desc' else 'desc' }}">目标</a></th><th>TTL</th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=status&sort_order={{ 'asc' if sort_by=='status' and sort_order=='desc' else 'desc' }}">状态</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=created_at&sort_order={{ 'asc' if sort_by=='created_at' and sort_order=='desc' else 'desc' }}">创建时间</a></th></tr></thead>
-  <tbody id="policyBody">
-    {% for item in items %}
-    <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{% if item.event_id %}<a href="/events/view/{{ item.event_id }}">{{ item.event_id }}</a>{% else %}-{% endif %}</td><td>{{ item.action }}</td><td>{{ item.target }}</td><td>{{ item.ttl }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-<div class="toolbar" style="margin-top:16px">
-  <span class="auto-refresh">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
-  {% if pagination.has_prev %}<a class="btn secondary" href="?page={{ pagination.prev_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">上一页</a>{% endif %}
-  {% if pagination.has_next %}<a class="btn secondary" href="?page={{ pagination.next_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">下一页</a>{% endif %}
+<p class="subtle">展示自动/手工生成的联动策略与执行状态，支持无刷新搜索、排序与分页。</p>
+
+<div class="card table-panel">
+  <div class="loading-mask" id="policiesLoading">正在刷新策略数据...</div>
+  <div class="card-header">
+    <div>
+      <h3>联动策略列表</h3>
+      <div class="subtle" style="margin:6px 0 0 0">用于查看封禁、限流、回滚与人工干预动作</div>
+    </div>
+    <span class="pill">8 秒自动刷新</span>
+  </div>
+  <div class="toolbar">
+    <input id="policiesFilter" class="search-box" placeholder="搜索动作 / 目标 / 状态 / TTL">
+    <select id="policiesPageSize">
+      <option value="10">10 条/页</option>
+      <option value="20" selected>20 条/页</option>
+      <option value="50">50 条/页</option>
+    </select>
+    <button class="btn ghost" id="policiesRefresh">立即刷新</button>
+    <div class="toolbar-right"><span class="auto-refresh" id="policiesTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th><button class="link-sort" data-grid="policies" data-sort="id">ID <span class="sort-arrow"></span></button></th>
+        <th>事件ID</th>
+        <th><button class="link-sort" data-grid="policies" data-sort="action">动作 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="policies" data-sort="target">目标 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="policies" data-sort="ttl">TTL <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="policies" data-sort="status">状态 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="policies" data-sort="created_at">创建时间 <span class="sort-arrow"></span></button></th>
+      </tr>
+    </thead>
+    <tbody id="policiesBody">
+      {% for item in items %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.event_id or '-' }}</td>
+        <td>{{ item.action }}</td>
+        <td>{{ item.target }}</td>
+        <td>{{ item.ttl }}</td>
+        <td>{{ item.status }}</td>
+        <td>{{ item.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pager">
+    <span class="auto-refresh" id="policiesPageInfo">{{ pagination.page }} / {{ pagination.total_pages }}</span>
+    <div class="pager-actions">
+      <button class="btn secondary" id="policiesPrev">上一页</button>
+      <button class="btn secondary" id="policiesNext">下一页</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-const policyFilter = document.getElementById('policyFilter');
-policyFilter?.addEventListener('input', () => {
-  const keyword = policyFilter.value.trim().toLowerCase();
-  document.querySelectorAll('#policyBody tr').forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
-  });
+PiGuardUI.mountGrid({
+  name: 'policies',
+  api: '/api/policies',
+  bodyId: 'policiesBody',
+  totalId: 'policiesTotal',
+  prevId: 'policiesPrev',
+  nextId: 'policiesNext',
+  pageId: 'policiesPageInfo',
+  pageSizeId: 'policiesPageSize',
+  searchId: 'policiesFilter',
+  refreshId: 'policiesRefresh',
+  loadingId: 'policiesLoading',
+  page: {{ pagination.page }},
+  pageSize: {{ pagination.page_size }},
+  sortBy: {{ sort_by|tojson }},
+  sortOrder: {{ sort_order|tojson }},
+  query: {{ query|default('', true)|tojson }},
+  refreshMs: 8000,
+  colspan: 7,
+  renderRow(item) {
+    return `
+      <tr class="clickable" onclick="window.location='/policies/view/${encodeURIComponent(item.id)}'">
+        <td>${PiGuardUI.escapeHtml(item.id)}</td>
+        <td>${item.event_id ? `<a href="/events/view/${encodeURIComponent(item.event_id)}" onclick="event.stopPropagation()">${PiGuardUI.escapeHtml(item.event_id)}</a>` : '-'}</td>
+        <td>${PiGuardUI.escapeHtml(item.action || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.target || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.ttl ?? '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.status || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.created_at || '-')}</td>
+      </tr>
+    `;
+  },
 });
-setInterval(() => location.reload(), 8000);
 </script>
 {% endblock %}

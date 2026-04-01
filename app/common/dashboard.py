@@ -37,11 +37,16 @@ def build_dashboard_summary(
         "services": runtime["systemd"]["services"],
     }
 
+    recent_events = list_events(limit=recent_event_limit)
+    recent_policies = list_policies(limit=recent_policy_limit)
+
     return {
         "stats": stats,
         "risk_summary": risk_summary,
-        "recent_events": list_events(limit=recent_event_limit),
-        "recent_policies": list_policies(limit=recent_policy_limit),
+        "recent_events": recent_events,
+        "recent_policies": recent_policies,
+        "event_type_summary": _top_counts(recent_events, "event_type"),
+        "policy_action_summary": _top_counts(recent_policies, "action"),
         "scan_listener_status": scan_listener_status or {},
         "notifier_status": notifier_status or {},
         "runtime_summary": runtime_summary,
@@ -56,3 +61,12 @@ def _count(conn, table: str) -> int:
 def _count_where(conn, table: str, where_sql: str) -> int:
     row = conn.execute(f"SELECT COUNT(*) AS count FROM {table} WHERE {where_sql}").fetchone()
     return int(row["count"]) if row else 0
+
+
+def _top_counts(items: list[dict[str, Any]], key: str, limit: int = 5) -> list[dict[str, Any]]:
+    counts: dict[str, int] = {}
+    for item in items:
+        value = str(item.get(key) or "-")
+        counts[value] = counts.get(value, 0) + 1
+    ordered = sorted(counts.items(), key=lambda pair: (-pair[1], pair[0]))
+    return [{"label": label, "count": count} for label, count in ordered[:limit]]

@@ -3,33 +3,95 @@
 {% block page_title %}资产画像{% endblock %}
 {% block breadcrumb %}资产画像{% endblock %}
 {% block content %}
-<p class="subtle">展示受保护资产的重要性、类型与负责人。</p>
-<div class="toolbar">
-  <input id="assetFilter" class="search-box" placeholder="搜索 IP / 主机名 / 负责人">
-  <span class="auto-refresh">资产总数：{{ items|length }}</span>
-</div>
-<table>
-  <thead><tr><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=ip&sort_order={{ 'desc' if sort_by=='ip' and sort_order=='asc' else 'asc' }}">IP</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=hostname&sort_order={{ 'desc' if sort_by=='hostname' and sort_order=='asc' else 'asc' }}">主机名</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=asset_type&sort_order={{ 'desc' if sort_by=='asset_type' and sort_order=='asc' else 'asc' }}">类型</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=importance&sort_order={{ 'desc' if sort_by=='importance' and sort_order=='asc' else 'asc' }}">重要性</a></th><th><a href="?page=1&page_size={{ pagination.page_size }}&sort_by=owner&sort_order={{ 'desc' if sort_by=='owner' and sort_order=='asc' else 'asc' }}">负责人</a></th></tr></thead>
-  <tbody id="assetBody">
-    {% for item in items %}
-    <tr><td><a href="/assets/view/{{ item.ip }}">{{ item.ip }}</a></td><td>{{ item.hostname }}</td><td>{{ item.asset_type }}</td><td>{{ item.importance }}</td><td>{{ item.owner }}</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-<div class="toolbar" style="margin-top:16px">
-  <span class="auto-refresh">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
-  {% if pagination.has_prev %}<a class="btn secondary" href="?page={{ pagination.prev_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">上一页</a>{% endif %}
-  {% if pagination.has_next %}<a class="btn secondary" href="?page={{ pagination.next_page }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">下一页</a>{% endif %}
+<p class="subtle">展示受保护资产的重要性、类型与负责人，支持无刷新排序、搜索和分页。</p>
+
+<div class="card table-panel">
+  <div class="loading-mask" id="assetsLoading">正在刷新资产数据...</div>
+  <div class="card-header">
+    <div>
+      <h3>资产台账</h3>
+      <div class="subtle" style="margin:6px 0 0 0">用于查看关键服务器、设备与责任归属</div>
+    </div>
+    <span class="pill" id="assetsSummary">资产总数：{{ summary.total if summary else items|length }}</span>
+  </div>
+  <div class="toolbar">
+    <input id="assetsFilter" class="search-box" placeholder="搜索 IP / 主机名 / 类型 / 负责人">
+    <select id="assetsPageSize">
+      <option value="10">10 条/页</option>
+      <option value="20" selected>20 条/页</option>
+      <option value="50">50 条/页</option>
+    </select>
+    <button class="btn ghost" id="assetsRefresh">立即刷新</button>
+    <div class="toolbar-right"><span class="auto-refresh" id="assetsTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th><button class="link-sort" data-grid="assets" data-sort="ip">IP <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="assets" data-sort="hostname">主机名 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="assets" data-sort="asset_type">类型 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="assets" data-sort="importance">重要性 <span class="sort-arrow"></span></button></th>
+        <th><button class="link-sort" data-grid="assets" data-sort="owner">负责人 <span class="sort-arrow"></span></button></th>
+      </tr>
+    </thead>
+    <tbody id="assetsBody">
+      {% for item in items %}
+      <tr>
+        <td>{{ item.ip }}</td>
+        <td>{{ item.hostname }}</td>
+        <td>{{ item.asset_type }}</td>
+        <td>{{ item.importance }}</td>
+        <td>{{ item.owner }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pager">
+    <span class="auto-refresh" id="assetsPageInfo">{{ pagination.page }} / {{ pagination.total_pages }}</span>
+    <div class="pager-actions">
+      <button class="btn secondary" id="assetsPrev">上一页</button>
+      <button class="btn secondary" id="assetsNext">下一页</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-const assetFilter = document.getElementById('assetFilter');
-assetFilter?.addEventListener('input', () => {
-  const keyword = assetFilter.value.trim().toLowerCase();
-  document.querySelectorAll('#assetBody tr').forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
-  });
+PiGuardUI.mountGrid({
+  name: 'assets',
+  api: '/api/assets',
+  bodyId: 'assetsBody',
+  totalId: 'assetsTotal',
+  prevId: 'assetsPrev',
+  nextId: 'assetsNext',
+  pageId: 'assetsPageInfo',
+  pageSizeId: 'assetsPageSize',
+  searchId: 'assetsFilter',
+  refreshId: 'assetsRefresh',
+  loadingId: 'assetsLoading',
+  page: {{ pagination.page }},
+  pageSize: {{ pagination.page_size }},
+  sortBy: {{ sort_by|tojson }},
+  sortOrder: {{ sort_order|tojson }},
+  query: {{ query|default('', true)|tojson }},
+  refreshMs: 12000,
+  colspan: 5,
+  onData(data) {
+    const summary = data.summary || {};
+    const summaryEl = document.getElementById('assetsSummary');
+    if (summaryEl) summaryEl.textContent = `资产总数：${summary.total || 0}`;
+  },
+  renderRow(item) {
+    return `
+      <tr class="clickable" onclick="window.location='/assets/view/${encodeURIComponent(item.ip)}'">
+        <td>${PiGuardUI.escapeHtml(item.ip || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.hostname || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.asset_type || '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.importance ?? '-')}</td>
+        <td>${PiGuardUI.escapeHtml(item.owner || '-')}</td>
+      </tr>
+    `;
+  },
 });
 </script>
 {% endblock %}

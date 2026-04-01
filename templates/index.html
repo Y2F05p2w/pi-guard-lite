@@ -3,7 +3,7 @@
 {% block page_title %}控制台总览{% endblock %}
 {% block breadcrumb %}控制台总览{% endblock %}
 {% block content %}
-<p class="subtle">统一展示威胁事件、联动策略、自动扫描监听、高级攻击分析与运行态势，界面风格向企业防火墙控制台靠拢。</p>
+<p class="subtle">展示当前威胁态势、联动处置、运行环境与关键服务状态，采用更接近传统安全设备后台的展示方式。</p>
 
 <div class="grid">
   <div class="card"><div class="stat-title">事件总数</div><div class="stat-value" id="stat-events">{{ stats.events }}</div></div>
@@ -11,45 +11,49 @@
   <div class="card"><div class="stat-title">封禁总数</div><div class="stat-value" id="stat-blocked">{{ stats.blocked }}</div></div>
 </div>
 
-<div class="triple" style="margin-top:16px">
+<div class="split" style="margin-top:12px">
   <div class="card">
     <div class="card-header">
       <div>
         <h3>关键服务状态</h3>
-        <div class="subtle" style="margin:6px 0 0 0">运行链路与自动防御组件在线情况</div>
+        <div class="subtle" style="margin:4px 0 0">当前监听、通知与设备运行情况</div>
       </div>
       <a class="btn secondary" href="/system/view">系统总览</a>
     </div>
-    <div class="progress-list">
-      <div class="mini-stat"><span class="status-dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}"></span> 扫描监听 <strong id="quick-scan">{{ '在线' if scan_listener_status.running else '离线' }}</strong></div>
-      <div class="mini-stat"><span class="status-dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}"></span> 通知链路 <strong id="quick-notify">{{ '启用' if notifier_status.enabled else '关闭' }}</strong></div>
-      <div class="mini-stat"><span class="status-dot info"></span> 监听端口 <strong id="scan-ports">{{ (scan_listener_status.ports or [])|join(', ') }}</strong></div>
-      <div class="mini-stat"><span class="status-dot info"></span> 主机健康 <strong id="quick-health">正常</strong></div>
+    <div class="kv">
+      <div>扫描监听</div><div id="quick-scan">{{ '在线' if scan_listener_status.running else '离线' }}</div>
+      <div>监听端口</div><div id="scan-ports">{{ (scan_listener_status.ports or [])|join(', ') }}</div>
+      <div>通知链路</div><div id="quick-notify">{{ '启用' if notifier_status.enabled else '关闭' }}</div>
+      <div>设备健康</div><div id="quick-health">正常</div>
     </div>
   </div>
 
   <div class="card">
     <div class="card-header">
       <div>
-        <h3>风险分布</h3>
-        <div class="subtle" style="margin:6px 0 0 0">按风险等级统计当前事件</div>
+        <h3>风险等级分布</h3>
+        <div class="subtle" style="margin:4px 0 0">按风险级别统计当前事件</div>
       </div>
-      <a class="btn secondary" href="/events/view">查看事件</a>
+      <a class="btn secondary" href="/events/view">事件中心</a>
     </div>
-    <div class="progress-list">
-      {% set risk_max = [risk_summary.critical, risk_summary.high, risk_summary.medium, risk_summary.low, 1]|max %}
-      <div class="progress-row"><div class="progress-label">Critical</div><div class="progress-bar"><span id="risk-bar-critical" style="width:{{ (risk_summary.critical / risk_max * 100) if risk_max else 0 }}%"></span></div><div id="risk-critical">{{ risk_summary.critical }}</div></div>
-      <div class="progress-row"><div class="progress-label">High</div><div class="progress-bar"><span id="risk-bar-high" style="width:{{ (risk_summary.high / risk_max * 100) if risk_max else 0 }}%"></span></div><div id="risk-high">{{ risk_summary.high }}</div></div>
-      <div class="progress-row"><div class="progress-label">Medium</div><div class="progress-bar"><span id="risk-bar-medium" style="width:{{ (risk_summary.medium / risk_max * 100) if risk_max else 0 }}%"></span></div><div id="risk-medium">{{ risk_summary.medium }}</div></div>
-      <div class="progress-row"><div class="progress-label">Low</div><div class="progress-bar"><span id="risk-bar-low" style="width:{{ (risk_summary.low / risk_max * 100) if risk_max else 0 }}%"></span></div><div id="risk-low">{{ risk_summary.low }}</div></div>
-    </div>
+    <table>
+      <thead><tr><th>等级</th><th>数量</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag critical">critical</span></td><td id="risk-critical">{{ risk_summary.critical }}</td></tr>
+        <tr><td><span class="tag high">high</span></td><td id="risk-high">{{ risk_summary.high }}</td></tr>
+        <tr><td><span class="tag medium">medium</span></td><td id="risk-medium">{{ risk_summary.medium }}</td></tr>
+        <tr><td><span class="tag low">low</span></td><td id="risk-low">{{ risk_summary.low }}</td></tr>
+      </tbody>
+    </table>
   </div>
+</div>
 
+<div class="split" style="margin-top:12px">
   <div class="card">
     <div class="card-header">
       <div>
         <h3>运行概览</h3>
-        <div class="subtle" style="margin:6px 0 0 0">用于树莓派 / Windows 真机运行检查</div>
+        <div class="subtle" style="margin:4px 0 0">主机、Python、磁盘与温度信息</div>
       </div>
       <a class="btn secondary" href="/runtime/view">运行状态</a>
     </div>
@@ -60,61 +64,28 @@
       <div>温度</div><div id="rt-temp">{{ runtime_summary.temperature_c if runtime_summary.temperature_c is not none else '-' }}</div>
     </div>
   </div>
-</div>
-
-<div class="split" style="margin-top:16px">
   <div class="card">
     <div class="card-header">
       <div>
-        <h3>高频事件类型</h3>
-        <div class="subtle" style="margin:6px 0 0 0">近一批次事件类型分布</div>
+        <h3>功能入口</h3>
+        <div class="subtle" style="margin:4px 0 0">常用分析与运维入口</div>
       </div>
+    </div>
+    <div class="toolbar compact">
       <a class="btn secondary" href="/analysis/view/1">高级分析</a>
-    </div>
-    <div class="progress-list" id="event-type-summary">
-      {% set event_type_max = [1] + event_type_summary | map(attribute='count') | list %}
-      {% set event_type_max = event_type_max|max %}
-      {% for item in event_type_summary %}
-      <div class="progress-row">
-        <div class="progress-label">{{ item.label }}</div>
-        <div class="progress-bar"><span style="width:{{ (item.count / event_type_max * 100) if event_type_max else 0 }}%"></span></div>
-        <div>{{ item.count }}</div>
-      </div>
-      {% else %}
-      <div class="empty-state">暂无事件分布数据</div>
-      {% endfor %}
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <h3>高频策略动作</h3>
-        <div class="subtle" style="margin:6px 0 0 0">当前联动动作分布</div>
-      </div>
-      <a class="btn secondary" href="/policies/view">策略中心</a>
-    </div>
-    <div class="progress-list" id="policy-action-summary">
-      {% set action_max = [1] + policy_action_summary | map(attribute='count') | list %}
-      {% set action_max = action_max|max %}
-      {% for item in policy_action_summary %}
-      <div class="progress-row">
-        <div class="progress-label">{{ item.label }}</div>
-        <div class="progress-bar"><span style="width:{{ (item.count / action_max * 100) if action_max else 0 }}%"></span></div>
-        <div>{{ item.count }}</div>
-      </div>
-      {% else %}
-      <div class="empty-state">暂无策略动作分布数据</div>
-      {% endfor %}
+      <a class="btn secondary" href="/manual/view">手工处置</a>
+      <a class="btn secondary" href="/models/view">模型管理</a>
+      <a class="btn secondary" href="/notifications/view">通知管理</a>
     </div>
   </div>
 </div>
 
-<div class="split" style="margin-top:16px">
+<div class="split" style="margin-top:12px">
   <div class="card">
     <div class="card-header">
       <div>
         <h3>最近事件</h3>
-        <div class="subtle" style="margin:6px 0 0 0">支持直接跳转高级攻击分析</div>
+        <div class="subtle" style="margin:4px 0 0">最近接入的高风险或已评分事件</div>
       </div>
       <a class="btn ghost" href="/events/view">更多</a>
     </div>
@@ -139,7 +110,7 @@
     <div class="card-header">
       <div>
         <h3>最近策略</h3>
-        <div class="subtle" style="margin:6px 0 0 0">自动与手工联动策略</div>
+        <div class="subtle" style="margin:4px 0 0">最近执行或待执行的策略动作</div>
       </div>
       <a class="btn ghost" href="/policies/view">更多</a>
     </div>
@@ -160,23 +131,60 @@
     </table>
   </div>
 </div>
+
+<div class="split" style="margin-top:12px">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3>事件类型分布</h3>
+        <div class="subtle" style="margin:4px 0 0">近一批次事件类型统计</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>类型</th><th>数量</th></tr></thead>
+      <tbody id="event-type-summary">
+        {% for item in event_type_summary %}
+        <tr><td>{{ item.label }}</td><td>{{ item.count }}</td></tr>
+        {% else %}
+        <tr><td colspan="2"><div class="empty-state">暂无统计数据</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3>策略动作分布</h3>
+        <div class="subtle" style="margin:4px 0 0">当前联动动作统计</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>动作</th><th>数量</th></tr></thead>
+      <tbody id="policy-action-summary">
+        {% for item in policy_action_summary %}
+        <tr><td>{{ item.label }}</td><td>{{ item.count }}</td></tr>
+        {% else %}
+        <tr><td colspan="2"><div class="empty-state">暂无统计数据</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>
-function renderProgressList(containerId, items) {
+function renderSimpleRows(containerId, items) {
   const container = document.getElementById(containerId);
   if (!container) return;
   if (!items.length) {
-    container.innerHTML = '<div class="empty-state">暂无分布数据</div>';
+    container.innerHTML = '<tr><td colspan="2"><div class="empty-state">暂无统计数据</div></td></tr>';
     return;
   }
-  const max = Math.max(...items.map(item => Number(item.count || 0)), 1);
   container.innerHTML = items.map(item => `
-    <div class="progress-row">
-      <div class="progress-label">${PiGuardUI.escapeHtml(item.label)}</div>
-      <div class="progress-bar"><span style="width:${(Number(item.count || 0) / max) * 100}%"></span></div>
-      <div>${PiGuardUI.escapeHtml(item.count)}</div>
-    </div>
+    <tr>
+      <td>${PiGuardUI.escapeHtml(item.label)}</td>
+      <td>${PiGuardUI.escapeHtml(item.count)}</td>
+    </tr>
   `).join('');
 }
 
@@ -192,13 +200,6 @@ async function refreshDashboard() {
     document.getElementById('risk-high').textContent = data.risk_summary.high;
     document.getElementById('risk-medium').textContent = data.risk_summary.medium;
     document.getElementById('risk-low').textContent = data.risk_summary.low;
-    const riskValues = [data.risk_summary.critical, data.risk_summary.high, data.risk_summary.medium, data.risk_summary.low];
-    const riskMax = Math.max(...riskValues, 1);
-    document.getElementById('risk-bar-critical').style.width = `${(data.risk_summary.critical / riskMax) * 100}%`;
-    document.getElementById('risk-bar-high').style.width = `${(data.risk_summary.high / riskMax) * 100}%`;
-    document.getElementById('risk-bar-medium').style.width = `${(data.risk_summary.medium / riskMax) * 100}%`;
-    document.getElementById('risk-bar-low').style.width = `${(data.risk_summary.low / riskMax) * 100}%`;
-
     const scan = data.scan_listener_status || {};
     document.getElementById('quick-scan').textContent = scan.running ? '在线' : '离线';
     document.getElementById('scan-ports').textContent = (scan.ports || []).join(', ');
@@ -209,9 +210,8 @@ async function refreshDashboard() {
     document.getElementById('rt-python').textContent = runtime.python || '-';
     document.getElementById('rt-disk').textContent = `${runtime.disk_used_percent ?? '-'}%`;
     document.getElementById('rt-temp').textContent = runtime.temperature_c ?? '-';
-
-    renderProgressList('event-type-summary', data.event_type_summary || []);
-    renderProgressList('policy-action-summary', data.policy_action_summary || []);
+    renderSimpleRows('event-type-summary', data.event_type_summary || []);
+    renderSimpleRows('policy-action-summary', data.policy_action_summary || []);
 
     const events = data.recent_events || [];
     const eventBody = document.getElementById('eventTableBody');
@@ -237,7 +237,6 @@ async function refreshDashboard() {
     `).join('') : '<tr><td colspan="4"><div class="empty-state">暂无策略</div></td></tr>';
   } catch (e) {}
 }
-
 setInterval(refreshDashboard, 5000);
 </script>
 {% endblock %}

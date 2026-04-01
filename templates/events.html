@@ -3,7 +3,7 @@
 {% block page_title %}事件中心{% endblock %}
 {% block breadcrumb %}事件中心{% endblock %}
 {% block content %}
-<p class="subtle">统一展示流量、系统日志、EDR 与样本分析输入后的结构化事件，支持无刷新检索、分页与排序。</p>
+<p class="subtle">统一查看流量、系统日志、EDR 与样本分析形成的结构化事件。列表按传统设备后台方式展示，支持检索、排序和分页。</p>
 
 <div class="card table-panel">
   <div class="loading-mask" id="eventsLoading">正在刷新事件数据...</div>
@@ -13,8 +13,7 @@
       <div class="subtle" style="margin:6px 0 0 0">按来源、类型、风险与 IP 进行统一查看</div>
     </div>
     <div class="toolbar-right">
-      <span class="pill">8 秒自动刷新</span>
-      <a class="btn secondary" href="/scan-listener/status">监听状态</a>
+      <a class="btn secondary" href="/scan-listener/view">监听状态</a>
     </div>
   </div>
 
@@ -27,6 +26,7 @@
     </select>
     <button class="btn ghost" id="eventsRefresh">立即刷新</button>
     <div class="toolbar-right">
+      <span class="pill">8 秒自动刷新</span>
       <span class="auto-refresh" id="eventsTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
     </div>
   </div>

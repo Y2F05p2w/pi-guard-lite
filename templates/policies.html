@@ -3,7 +3,7 @@
 {% block page_title %}策略中心{% endblock %}
 {% block breadcrumb %}策略中心{% endblock %}
 {% block content %}
-<p class="subtle">展示自动/手工生成的联动策略与执行状态，支持无刷新搜索、排序与分页。</p>
+<p class="subtle">展示自动或人工生成的联动策略及执行状态。列表界面尽量保持传统安全设备后台的阅读方式。</p>
 
 <div class="card table-panel">
   <div class="loading-mask" id="policiesLoading">正在刷新策略数据...</div>
@@ -12,7 +12,10 @@
       <h3>联动策略列表</h3>
       <div class="subtle" style="margin:6px 0 0 0">用于查看封禁、限流、回滚与人工干预动作</div>
     </div>
-    <span class="pill">8 秒自动刷新</span>
+    <div class="toolbar-right">
+      <span class="pill">8 秒自动刷新</span>
+      <a class="btn secondary" href="/manual/view">手工处置</a>
+    </div>
   </div>
   <div class="toolbar">
     <input id="policiesFilter" class="search-box" placeholder="搜索动作 / 目标 / 状态 / TTL">

@@ -3,7 +3,7 @@
 {% block page_title %}黑名单{% endblock %}
 {% block breadcrumb %}黑名单{% endblock %}
 {% block content %}
-<p class="subtle">记录自动封禁与手工封禁的目标列表及其过期信息，支持无刷新分页与检索。</p>
+<p class="subtle">记录自动封禁和手工封禁的目标列表、原因、状态和过期时间，用于查看当前阻断情况。</p>
 
 <div class="card table-panel">
   <div class="loading-mask" id="blocklistLoading">正在刷新黑名单数据...</div>
@@ -12,7 +12,10 @@
       <h3>阻断名单</h3>
       <div class="subtle" style="margin:6px 0 0 0">查看当前阻断目标、原因、状态和过期时间</div>
     </div>
-    <span class="pill">8 秒自动刷新</span>
+    <div class="toolbar-right">
+      <span class="pill">8 秒自动刷新</span>
+      <a class="btn secondary" href="/policies/view">相关策略</a>
+    </div>
   </div>
   <div class="toolbar">
     <input id="blocklistFilter" class="search-box" placeholder="搜索目标 IP / 原因 / 状态">

@@ -4,49 +4,68 @@
 {% block breadcrumb %}事件中心 / Event {{ event.id if event else '-' }}{% endblock %}
 {% block content %}
 {% if not event %}
-<div class="card"><p>未找到事件。</p></div>
+<div class="card"><p>未找到对应事件。</p></div>
 {% else %}
 <div class="split">
   <div class="card">
-    <h3>基础信息</h3>
+    <div class="card-header">
+      <div>
+        <h3>基础信息</h3>
+        <div class="subtle" style="margin:4px 0 0">查看事件来源、时间、IP、风险等级与原始日志位置。</div>
+      </div>
+      <a class="btn secondary" href="/analysis/view/{{ event.id }}">高级分析</a>
+    </div>
     <div class="kv">
-      <div>ID</div><div>{{ event.id }}</div>
+      <div>事件 ID</div><div>{{ event.id }}</div>
       <div>时间</div><div>{{ event.ts }}</div>
       <div>来源</div><div>{{ event.source }}</div>
       <div>类型</div><div>{{ event.event_type }}</div>
-      <div>源IP</div><div>{{ event.src_ip or '-' }}</div>
-      <div>目的IP</div><div>{{ event.dst_ip or '-' }}</div>
-      <div>风险</div><div><span class="tag {{ event.risk_level }}">{{ event.risk_level }}</span> {{ event.risk_score }}</div>
-      <div>原始日志</div><div>{{ event.raw_path or '-' }}</div>
+      <div>源 IP</div><div>{{ event.src_ip or '-' }}</div>
+      <div>目的 IP</div><div>{{ event.dst_ip or '-' }}</div>
+      <div>风险等级</div><div><span class="tag {{ event.risk_level }}">{{ event.risk_level }}</span> {{ event.risk_score }}</div>
+      <div>异常分</div><div>{{ event.anomaly_score or '-' }}</div>
+      <div>ML 分</div><div>{{ event.ml_score or '-' }}</div>
+      <div>原始日志路径</div><div>{{ event.raw_path or '-' }}</div>
     </div>
   </div>
+
   <div class="card">
-    <h3>特征快照</h3>
+    <div class="card-header">
+      <div>
+        <h3>特征快照</h3>
+        <div class="subtle" style="margin:4px 0 0">用于评分和高级分析的特征输出。</div>
+      </div>
+    </div>
     {% if feature %}
     <div class="code">{{ feature.feature_json }}</div>
     {% else %}
-    <p class="subtle">暂无特征记录。</p>
+    <div class="empty-state">暂无特征记录</div>
     {% endif %}
   </div>
 </div>
 
-<div class="card" style="margin-top:16px">
-  <div class="section-title">
-    <h3>高级分析</h3>
+<div class="card" style="margin-top:12px">
+  <div class="card-header">
+    <div>
+      <h3>高级分析摘要</h3>
+      <div class="subtle" style="margin:4px 0 0">用于快速查看当前事件是否存在攻击链、MITRE 映射与资产影响。</div>
+    </div>
     <a class="btn secondary" href="/analysis/view/{{ event.id }}">打开独立分析页</a>
   </div>
   {% if analysis %}
   <div class="code">{{ analysis.summary }}</div>
-  <table style="margin-top:16px">
+  <table style="margin-top:12px">
     <thead><tr><th>Finding</th><th>分类</th><th>置信度</th></tr></thead>
     <tbody>
       {% for item in analysis.findings_json %}
       <tr><td>{{ item.name }}</td><td>{{ item.category }}</td><td>{{ item.confidence }}</td></tr>
+      {% else %}
+      <tr><td colspan="3"><div class="empty-state">暂无分析发现</div></td></tr>
       {% endfor %}
     </tbody>
   </table>
   {% else %}
-  <p class="subtle">暂无高级分析结果。</p>
+  <div class="empty-state">暂无高级分析结果</div>
   {% endif %}
 </div>
 {% endif %}

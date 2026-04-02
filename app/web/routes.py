@@ -14,7 +14,7 @@ from app.common.assets import get_asset, list_assets
 from app.common.config import get_settings, resolve_path
 from app.common.dashboard import build_dashboard_summary
 from app.common.db import get_connection
-from app.common.event_store import get_analysis_result, get_event, get_feature, list_events
+from app.common.event_store import get_analysis_result, get_event, get_feature, insert_audit_log, list_events
 from app.common.listing import build_list_payload
 from app.common.notifier import Notifier
 from app.common.runtime_checks import collect_runtime_report
@@ -34,7 +34,17 @@ from app.policy.repository import (
 )
 from app.policy.service import PolicyService
 from app.probe.checker import ProbeChecker
-from app.web.auth import get_auth_config, get_cookie_name, verify_credentials
+from app.web.auth import (
+    can_attempt_login,
+    get_auth_config,
+    get_client_key,
+    get_cookie_name,
+    get_login_status,
+    get_session_max_age,
+    register_failed_login,
+    register_successful_login,
+    verify_credentials,
+)
 
 
 router = APIRouter()
@@ -189,14 +199,36 @@ def login_page(request: Request) -> HTMLResponse:
 
 @router.post("/login", response_model=None)
 async def login_submit(request: Request) -> Response:
+    client_key = get_client_key(request)
+    login_status = get_login_status(client_key)
+    if login_status["locked"] or not can_attempt_login(client_key):
+        msg = quote(f"登录已锁定，请 {login_status['remaining_seconds']} 秒后再试")
+        return RedirectResponse(url=f"/login?message={msg}", status_code=303)
+
     form = await request.form()
     username = str(form.get("username", ""))
     password = str(form.get("password", ""))
     if not verify_credentials(username, password):
-        msg = quote("登录失败：用户名或密码错误")
+        new_status = register_failed_login(client_key)
+        auth = get_auth_config()
+        max_attempts = int(auth.get("max_failed_attempts", 5))
+        if new_status["locked"]:
+            msg = quote(f"登录失败次数过多，已锁定 {new_status['remaining_seconds']} 秒")
+        else:
+            remaining = max(0, max_attempts - int(new_status["failed_attempts"]))
+            msg = quote(f"登录失败：用户名或密码错误，剩余尝试次数 {remaining}")
+        insert_audit_log("auth", "login_failed", {"client": client_key, "username": username})
         return RedirectResponse(url=f"/login?message={msg}", status_code=303)
+    register_successful_login(client_key)
+    insert_audit_log("auth", "login_success", {"client": client_key, "username": username})
     response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie(get_cookie_name(), username, httponly=True, samesite="lax")
+    response.set_cookie(
+        get_cookie_name(),
+        username,
+        httponly=True,
+        samesite="lax",
+        max_age=get_session_max_age(),
+    )
     return response
 
 

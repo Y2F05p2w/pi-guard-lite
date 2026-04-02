@@ -4,12 +4,19 @@
 {% block breadcrumb %}黑名单 / Entry {{ entry.id if entry else '-' }}{% endblock %}
 {% block content %}
 {% if not entry %}
-<div class="card"><p>未找到黑名单记录。</p></div>
+<div class="card"><p>未找到对应黑名单记录。</p></div>
 {% else %}
 <div class="card">
+  <div class="card-header">
+    <div>
+      <h3>阻断信息</h3>
+      <div class="subtle" style="margin:4px 0 0">查看目标 IP、阻断原因、状态和过期时间。</div>
+    </div>
+    <a class="btn secondary" href="/policies/view">策略中心</a>
+  </div>
   <div class="kv">
-    <div>ID</div><div>{{ entry.id }}</div>
-    <div>IP</div><div>{{ entry.target_ip }}</div>
+    <div>记录 ID</div><div>{{ entry.id }}</div>
+    <div>目标 IP</div><div>{{ entry.target_ip }}</div>
     <div>原因</div><div>{{ entry.source_reason }}</div>
     <div>状态</div><div>{{ entry.status }}</div>
     <div>过期时间</div><div>{{ entry.expire_at or '-' }}</div>
@@ -17,13 +24,20 @@
   </div>
 </div>
 
-<div class="card" style="margin-top:16px">
-  <h3>关联策略</h3>
+<div class="card" style="margin-top:12px">
+  <div class="card-header">
+    <div>
+      <h3>关联策略</h3>
+      <div class="subtle" style="margin:4px 0 0">查看与该阻断记录相关的策略动作。</div>
+    </div>
+  </div>
   <table>
     <thead><tr><th>ID</th><th>动作</th><th>状态</th><th>创建时间</th></tr></thead>
     <tbody>
       {% for item in related_policies %}
       <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.action }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
+      {% else %}
+      <tr><td colspan="4"><div class="empty-state">暂无关联策略</div></td></tr>
       {% endfor %}
     </tbody>
   </table>

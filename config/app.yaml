@@ -9,6 +9,9 @@ auth:
   password: "admin"
   cookie_name: "pi_guard_auth"
   login_title: "Pi-Guard Lite"
+  session_max_age_seconds: 28800
+  max_failed_attempts: 5
+  lockout_seconds: 300
 
 paths:
   database: "data/pi_guard.db"

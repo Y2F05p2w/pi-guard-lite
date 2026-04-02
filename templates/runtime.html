@@ -3,47 +3,78 @@
 {% block page_title %}运行状态{% endblock %}
 {% block breadcrumb %}运行状态{% endblock %}
 {% block content %}
-<p class="subtle">展示当前主机运行信息、关键二进制、systemd 状态与资源情况。</p>
+<p class="subtle">用于查看主机信息、关键二进制、systemd 状态和运行资源，适合做树莓派或 Windows 本地环境检查。</p>
 
 <div class="split">
   <div class="card">
-    <h3>主机信息</h3>
+    <div class="card-header">
+      <div>
+        <h3>主机信息</h3>
+        <div class="subtle" style="margin:4px 0 0">当前主机、平台、Python 与工作目录。</div>
+      </div>
+    </div>
     <div class="kv">
-      <div>hostname</div><div id="rt-hostname">{{ report.host.hostname }}</div>
-      <div>platform</div><div id="rt-platform">{{ report.host.platform }}</div>
-      <div>python</div><div id="rt-python">{{ report.host.python }}</div>
-      <div>cwd</div><div id="rt-cwd">{{ report.paths.cwd }}</div>
+      <div>主机名</div><div id="rt-hostname">{{ report.host.hostname }}</div>
+      <div>平台</div><div id="rt-platform">{{ report.host.platform }}</div>
+      <div>Python</div><div id="rt-python">{{ report.host.python }}</div>
+      <div>工作目录</div><div id="rt-cwd">{{ report.paths.cwd }}</div>
     </div>
   </div>
+
   <div class="card">
-    <h3>资源情况</h3>
+    <div class="card-header">
+      <div>
+        <h3>资源状态</h3>
+        <div class="subtle" style="margin:4px 0 0">查看磁盘与温度，辅助判断是否需要清理或降载。</div>
+      </div>
+    </div>
     <div class="kv">
-      <div>disk total</div><div id="rt-disk-total">{{ report.resources.disk.total }}</div>
-      <div>disk used</div><div id="rt-disk-used">{{ report.resources.disk.used }}</div>
-      <div>disk free</div><div id="rt-disk-free">{{ report.resources.disk.free }}</div>
-      <div>used %</div><div id="rt-disk-percent">{{ report.resources.disk.used_percent }}</div>
-      <div>temperature</div><div id="rt-temp">{{ report.resources.temperature_c if report.resources.temperature_c is not none else '-' }}</div>
+      <div>磁盘总量</div><div id="rt-disk-total">{{ report.resources.disk.total }}</div>
+      <div>已使用</div><div id="rt-disk-used">{{ report.resources.disk.used }}</div>
+      <div>剩余</div><div id="rt-disk-free">{{ report.resources.disk.free }}</div>
+      <div>使用率</div><div id="rt-disk-percent">{{ report.resources.disk.used_percent }}</div>
+      <div>温度</div><div id="rt-temp">{{ report.resources.temperature_c if report.resources.temperature_c is not none else '-' }}</div>
     </div>
   </div>
 </div>
 
-<div class="split" style="margin-top:16px">
+<div class="split" style="margin-top:12px">
   <div class="card">
-    <h3>关键二进制</h3>
+    <div class="card-header">
+      <div>
+        <h3>关键二进制</h3>
+        <div class="subtle" style="margin:4px 0 0">用于查看 Python、Suricata、Fluent Bit 等是否可用。</div>
+      </div>
+    </div>
     <div class="code" id="rt-binaries">{{ report.binaries }}</div>
   </div>
+
   <div class="card">
-    <h3>systemd 状态</h3>
+    <div class="card-header">
+      <div>
+        <h3>systemd 状态</h3>
+        <div class="subtle" style="margin:4px 0 0">用于查看 Web、pipeline、定时任务和桥接服务状态。</div>
+      </div>
+    </div>
     <div class="code" id="rt-systemd">{{ report.systemd.services }}</div>
   </div>
 </div>
-<div class="card" style="margin-top:16px">
-  <h3>运维建议</h3>
-  <ul>
-    <li>当磁盘使用率持续升高时，运行 <code>python scripts\cleanup_runtime_data.py</code>。</li>
-    <li>当温度较高时，优先检查树莓派散热与负载。</li>
-    <li>若服务异常，先检查 <code>/health</code> 与 systemd 状态。</li>
-  </ul>
+
+<div class="card" style="margin-top:12px">
+  <div class="card-header">
+    <div>
+      <h3>运维建议</h3>
+      <div class="subtle" style="margin:4px 0 0">运行异常时优先从磁盘、温度、服务状态和健康接口排查。</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>场景</th><th>建议</th></tr></thead>
+    <tbody>
+      <tr><td>磁盘使用率持续升高</td><td>运行 <code>python scripts\cleanup_runtime_data.py</code> 清理历史文件。</td></tr>
+      <tr><td>温度较高</td><td>优先检查树莓派散热、流量压力和模型任务负载。</td></tr>
+      <tr><td>服务异常</td><td>先查看 <code>/health</code>、systemd 状态和日志目录。</td></tr>
+    </tbody>
+  </table>
 </div>
 {% endblock %}
 {% block scripts %}

@@ -3,48 +3,87 @@
 {% block page_title %}控制台总览{% endblock %}
 {% block breadcrumb %}控制台总览{% endblock %}
 {% block content %}
-<p class="subtle">用于查看当前安全态势、处置状态和运行状态。页面布局按传统安全设备总览方式组织，突出状态、统计和最近记录。</p>
-
-<div class="grid">
-  <div class="card"><div class="stat-title">事件总数</div><div class="stat-value" id="stat-events">{{ stats.events }}</div></div>
-  <div class="card"><div class="stat-title">策略总数</div><div class="stat-value" id="stat-policies">{{ stats.policies }}</div></div>
-  <div class="card"><div class="stat-title">封禁总数</div><div class="stat-value" id="stat-blocked">{{ stats.blocked }}</div></div>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">安全态势总览</div>
+    <div class="module-bar-note">集中查看威胁态势、处置状态、设备运行情况与常用入口。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/system/view">系统总览</a>
+    <a class="btn secondary" href="/runtime/view">运行状态</a>
+  </div>
 </div>
 
-<div class="card" style="margin-top:12px">
-  <div class="card-header">
-    <div>
-      <h3>设备状态摘要</h3>
-      <div class="subtle" style="margin:4px 0 0">关键联动组件与运行参数</div>
+<div class="quad">
+  <div class="metric-tile">
+    <div class="metric-tile-head"><span>事件总数</span><span>EVENT</span></div>
+    <div class="metric-tile-body">
+      <div class="metric-value" id="stat-events">{{ stats.events }}</div>
+      <div class="metric-note">当前系统已接收并入库的安全事件数量</div>
     </div>
   </div>
-  <table>
-    <thead><tr><th>项目</th><th>状态</th><th>说明</th><th>入口</th></tr></thead>
-    <tbody>
-      <tr><td>扫描监听</td><td id="quick-scan">{{ '在线' if scan_listener_status.running else '离线' }}</td><td id="scan-ports">{{ (scan_listener_status.ports or [])|join(', ') }}</td><td><a href="/scan-listener/view">查看</a></td></tr>
-      <tr><td>通知链路</td><td id="quick-notify">{{ '启用' if notifier_status.enabled else '关闭' }}</td><td>Webhook / 测试通知</td><td><a href="/notifications/view">查看</a></td></tr>
-      <tr><td>运行环境</td><td id="quick-health">正常</td><td>主机、磁盘、温度、systemd</td><td><a href="/runtime/view">查看</a></td></tr>
-      <tr><td>模型状态</td><td>已加载</td><td>异常模型 / 分类模型</td><td><a href="/models/view">查看</a></td></tr>
-    </tbody>
-  </table>
+  <div class="metric-tile">
+    <div class="metric-tile-head"><span>策略总数</span><span>POLICY</span></div>
+    <div class="metric-tile-body">
+      <div class="metric-value" id="stat-policies">{{ stats.policies }}</div>
+      <div class="metric-note">自动与手工生成的联动处置策略数量</div>
+    </div>
+  </div>
+  <div class="metric-tile">
+    <div class="metric-tile-head"><span>封禁总数</span><span>BLOCK</span></div>
+    <div class="metric-tile-body">
+      <div class="metric-value" id="stat-blocked">{{ stats.blocked }}</div>
+      <div class="metric-note">当前和历史阻断名单记录总数</div>
+    </div>
+  </div>
+  <div class="metric-tile">
+    <div class="metric-tile-head"><span>关键高危</span><span>CRITICAL</span></div>
+    <div class="metric-tile-body">
+      <div class="metric-value" id="risk-critical">{{ risk_summary.critical }}</div>
+      <div class="metric-note">当前被评定为 critical 的事件数量</div>
+    </div>
+  </div>
 </div>
 
 <div class="split" style="margin-top:12px">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3>设备状态概览</h3>
+        <div class="subtle" style="margin:4px 0 0">用于查看核心服务与运行状态是否正常。</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>项目</th><th>状态</th><th>说明</th><th>入口</th></tr></thead>
+      <tbody>
+        <tr><td>扫描监听</td><td id="quick-scan">{{ '在线' if scan_listener_status.running else '离线' }}</td><td id="scan-ports">{{ (scan_listener_status.ports or [])|join(', ') }}</td><td><a href="/scan-listener/view">查看</a></td></tr>
+        <tr><td>通知链路</td><td id="quick-notify">{{ '启用' if notifier_status.enabled else '关闭' }}</td><td>Webhook / 测试通知</td><td><a href="/notifications/view">查看</a></td></tr>
+        <tr><td>运行环境</td><td id="quick-health">正常</td><td>主机、磁盘、温度、systemd</td><td><a href="/runtime/view">查看</a></td></tr>
+        <tr><td>模型状态</td><td>已加载</td><td>异常模型 / 分类模型</td><td><a href="/models/view">查看</a></td></tr>
+      </tbody>
+    </table>
+  </div>
   <div class="card">
     <div class="card-header">
       <div>
         <h3>风险等级统计</h3>
-        <div class="subtle" style="margin:4px 0 0">按风险等级统计当前事件</div>
+        <div class="subtle" style="margin:4px 0 0">按风险等级展示当前态势。</div>
       </div>
-      <a class="btn secondary" href="/events/view">事件中心</a>
+      <a class="btn ghost" href="/events/view">事件中心</a>
     </div>
-    <table>
+    <div class="summary-strip">
+      <div class="summary-box"><div>Critical</div><strong id="sum-critical">{{ risk_summary.critical }}</strong></div>
+      <div class="summary-box"><div>High</div><strong id="sum-high">{{ risk_summary.high }}</strong></div>
+      <div class="summary-box"><div>Medium</div><strong id="sum-medium">{{ risk_summary.medium }}</strong></div>
+      <div class="summary-box"><div>Low</div><strong id="sum-low">{{ risk_summary.low }}</strong></div>
+    </div>
+    <table style="margin-top:12px">
       <thead><tr><th>等级</th><th>数量</th></tr></thead>
       <tbody>
-        <tr><td><span class="tag critical">critical</span></td><td id="risk-critical">{{ risk_summary.critical }}</td></tr>
-        <tr><td><span class="tag high">high</span></td><td id="risk-high">{{ risk_summary.high }}</td></tr>
-        <tr><td><span class="tag medium">medium</span></td><td id="risk-medium">{{ risk_summary.medium }}</td></tr>
-        <tr><td><span class="tag low">low</span></td><td id="risk-low">{{ risk_summary.low }}</td></tr>
+        <tr><td><span class="tag critical">critical</span></td><td id="risk-table-critical">{{ risk_summary.critical }}</td></tr>
+        <tr><td><span class="tag high">high</span></td><td id="risk-table-high">{{ risk_summary.high }}</td></tr>
+        <tr><td><span class="tag medium">medium</span></td><td id="risk-table-medium">{{ risk_summary.medium }}</td></tr>
+        <tr><td><span class="tag low">low</span></td><td id="risk-table-low">{{ risk_summary.low }}</td></tr>
       </tbody>
     </table>
   </div>
@@ -54,31 +93,10 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <h3>常用入口</h3>
-        <div class="subtle" style="margin:4px 0 0">常用分析与运维入口</div>
+        <h3>运行概况</h3>
+        <div class="subtle" style="margin:4px 0 0">主机、Python、磁盘与温度信息。</div>
       </div>
-      <a class="btn secondary" href="/system/view">系统总览</a>
-    </div>
-    <table>
-      <thead><tr><th>功能</th><th>说明</th><th>入口</th></tr></thead>
-      <tbody>
-        <tr><td>高级分析</td><td>查看 findings、MITRE、攻击图谱与受影响资产</td><td><a href="/analysis/view/1">进入</a></td></tr>
-        <tr><td>手工处置</td><td>手工封禁、解封与执行器联调</td><td><a href="/manual/view">进入</a></td></tr>
-        <tr><td>模型管理</td><td>导入、激活和查看模型版本</td><td><a href="/models/view">进入</a></td></tr>
-        <tr><td>通知管理</td><td>查看通知状态并发送测试通知</td><td><a href="/notifications/view">进入</a></td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div class="split" style="margin-top:12px">
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <h3>运行概览</h3>
-        <div class="subtle" style="margin:4px 0 0">主机、Python、磁盘与温度信息</div>
-      </div>
-      <a class="btn secondary" href="/runtime/view">运行状态</a>
+      <a class="btn ghost" href="/runtime/view">查看详情</a>
     </div>
     <div class="kv">
       <div>主机名</div><div id="rt-hostname">{{ runtime_summary.hostname }}</div>
@@ -90,8 +108,28 @@
   <div class="card">
     <div class="card-header">
       <div>
+        <h3>常用入口</h3>
+        <div class="subtle" style="margin:4px 0 0">常用分析、处置和模型管理入口。</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>功能</th><th>说明</th><th>入口</th></tr></thead>
+      <tbody>
+        <tr><td>高级分析</td><td>查看 findings、MITRE、攻击图谱与受影响资产</td><td><a href="/analysis/view/1">进入</a></td></tr>
+        <tr><td>手工处置</td><td>手工封禁、解封与执行器联调</td><td><a href="/manual/view">进入</a></td></tr>
+        <tr><td>模型管理</td><td>导入、激活并查看模型版本</td><td><a href="/models/view">进入</a></td></tr>
+        <tr><td>通知管理</td><td>查看通知状态并发送测试通知</td><td><a href="/notifications/view">进入</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="split" style="margin-top:12px">
+  <div class="card">
+    <div class="card-header">
+      <div>
         <h3>最近事件</h3>
-        <div class="subtle" style="margin:4px 0 0">最近接入的高风险或已评分事件</div>
+        <div class="subtle" style="margin:4px 0 0">最近接入的高风险或已评分事件。</div>
       </div>
       <a class="btn ghost" href="/events/view">更多</a>
     </div>
@@ -116,7 +154,7 @@
     <div class="card-header">
       <div>
         <h3>最近策略</h3>
-        <div class="subtle" style="margin:4px 0 0">最近执行或待执行的策略动作</div>
+        <div class="subtle" style="margin:4px 0 0">最近执行或待执行的策略动作。</div>
       </div>
       <a class="btn ghost" href="/policies/view">更多</a>
     </div>
@@ -142,8 +180,8 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <h3>事件类型分布</h3>
-        <div class="subtle" style="margin:4px 0 0">近一批次事件类型统计</div>
+        <h3>事件类型统计</h3>
+        <div class="subtle" style="margin:4px 0 0">近一批次事件类型分布。</div>
       </div>
     </div>
     <table>
@@ -160,8 +198,8 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <h3>策略动作分布</h3>
-        <div class="subtle" style="margin:4px 0 0">当前联动动作统计</div>
+        <h3>策略动作统计</h3>
+        <div class="subtle" style="margin:4px 0 0">当前联动动作分布。</div>
       </div>
     </div>
     <table>
@@ -203,9 +241,14 @@ async function refreshDashboard() {
     document.getElementById('stat-policies').textContent = data.stats.policies;
     document.getElementById('stat-blocked').textContent = data.stats.blocked;
     document.getElementById('risk-critical').textContent = data.risk_summary.critical;
-    document.getElementById('risk-high').textContent = data.risk_summary.high;
-    document.getElementById('risk-medium').textContent = data.risk_summary.medium;
-    document.getElementById('risk-low').textContent = data.risk_summary.low;
+    document.getElementById('sum-critical').textContent = data.risk_summary.critical;
+    document.getElementById('sum-high').textContent = data.risk_summary.high;
+    document.getElementById('sum-medium').textContent = data.risk_summary.medium;
+    document.getElementById('sum-low').textContent = data.risk_summary.low;
+    document.getElementById('risk-table-critical').textContent = data.risk_summary.critical;
+    document.getElementById('risk-table-high').textContent = data.risk_summary.high;
+    document.getElementById('risk-table-medium').textContent = data.risk_summary.medium;
+    document.getElementById('risk-table-low').textContent = data.risk_summary.low;
     const scan = data.scan_listener_status || {};
     document.getElementById('quick-scan').textContent = scan.running ? '在线' : '离线';
     document.getElementById('scan-ports').textContent = (scan.ports || []).join(', ');

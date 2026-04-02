@@ -3,17 +3,30 @@
 {% block page_title %}事件中心{% endblock %}
 {% block breadcrumb %}事件中心{% endblock %}
 {% block content %}
-<p class="subtle">统一查看流量、系统日志、EDR 与样本分析形成的结构化事件。列表按传统设备后台方式展示，支持检索、排序和分页。</p>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">威胁事件管理</div>
+    <div class="module-bar-note">查看流量、日志、EDR 与样本分析形成的结构化事件。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/scan-listener/view">监听状态</a>
+    <a class="btn secondary" href="/analysis/view/1">高级分析</a>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>当前页事件数</div><strong id="events-page-count">{{ items|length }}</strong></div>
+  <div class="summary-box"><div>高危 / 严重</div><strong id="events-high-risk">-</strong></div>
+  <div class="summary-box"><div>不同来源</div><strong id="events-source-count">-</strong></div>
+  <div class="summary-box"><div>已评分事件</div><strong id="events-scored-count">-</strong></div>
+</div>
 
 <div class="card table-panel">
   <div class="loading-mask" id="eventsLoading">正在刷新事件数据...</div>
   <div class="card-header">
     <div>
       <h3>威胁事件列表</h3>
-      <div class="subtle" style="margin:6px 0 0 0">按来源、类型、风险与 IP 进行统一查看</div>
-    </div>
-    <div class="toolbar-right">
-      <a class="btn secondary" href="/scan-listener/view">监听状态</a>
+      <div class="subtle" style="margin:6px 0 0 0">按时间、来源、类型、IP、风险与评分查看安全事件。</div>
     </div>
   </div>
 
@@ -94,6 +107,16 @@ PiGuardUI.mountGrid({
   query: {{ query|default('', true)|tojson }},
   refreshMs: 8000,
   colspan: 10,
+  onData(data) {
+    const items = data.items || [];
+    const highRisk = items.filter(item => ['high', 'critical'].includes(String(item.risk_level || '').toLowerCase())).length;
+    const sources = new Set(items.map(item => item.source || '-')).size;
+    const scored = items.filter(item => item.risk_score !== null && item.risk_score !== undefined).length;
+    document.getElementById('events-page-count').textContent = items.length;
+    document.getElementById('events-high-risk').textContent = highRisk;
+    document.getElementById('events-source-count').textContent = sources;
+    document.getElementById('events-scored-count').textContent = scored;
+  },
   renderRow(item) {
     return `
       <tr class="clickable" onclick="window.location='/events/view/${encodeURIComponent(item.id)}'">

@@ -4,113 +4,100 @@
 {% block breadcrumb %}高级分析 / Event {{ event_id }}{% endblock %}
 {% block extra_head %}
 <style>
-  #graphCanvas{width:100%;height:420px;border:1px solid var(--border);background:#fff}
-  .graph-toolbar{display:flex;gap:8px;align-items:center}
-  .analysis-summary{line-height:1.8;color:#40576e}
-  .graph-note{font-size:12px;color:var(--muted);margin-top:8px}
+  #graphCanvas{width:100%;height:480px;border:1px solid var(--dc-border);background:#fff}
 </style>
 {% endblock %}
 {% block content %}
 {% if not result %}
 <div class="card"><p>未找到 event_id={{ event_id }} 对应的高级分析结果。</p></div>
 {% else %}
-<div class="card">
-  <div class="card-header">
-    <div>
-      <h3>分析概要</h3>
-      <div class="subtle" style="margin:4px 0 0">本页用于查看 findings、MITRE 映射、攻击图谱和受影响资产。</div>
-    </div>
-    <div class="toolbar-right">
-      <a class="btn secondary" href="/events/view/{{ event_id }}">事件详情</a>
-      <a class="btn secondary" href="/policies/view">策略中心</a>
-    </div>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">高级攻击分析视图</div>
+    <div class="module-bar-note">从概要、分析发现、MITRE 映射、攻击图谱和受影响资产五个维度查看当前事件。</div>
   </div>
-  <div class="kv">
-    <div>事件 ID</div><div>{{ result.event_id }}</div>
-    <div>摘要</div><div class="analysis-summary">{{ result.summary }}</div>
-    <div>生成时间</div><div>{{ result.created_at }}</div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/events/view/{{ event_id }}">事件详情</a>
+    <a class="btn secondary" href="/policies/view">策略中心</a>
   </div>
 </div>
 
-<div class="split" style="margin-top:12px">
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <h3>分析发现</h3>
-        <div class="subtle" style="margin:4px 0 0">按名称、分类和置信度展示命中的分析项</div>
-      </div>
-    </div>
-    <table>
-      <thead><tr><th>ID</th><th>名称</th><th>分类</th><th>置信度</th></tr></thead>
-      <tbody>
-        {% for item in result.findings_json %}
-        <tr><td>{{ item.finding_id }}</td><td>{{ item.name }}</td><td>{{ item.category }}</td><td>{{ item.confidence }}</td></tr>
-        {% else %}
-        <tr><td colspan="4"><div class="empty-state">暂无 findings 数据</div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <h3>MITRE ATT&CK 映射</h3>
-        <div class="subtle" style="margin:4px 0 0">按技术编号、名称、战术与置信度展示</div>
-      </div>
-    </div>
-    <table>
-      <thead><tr><th>Technique</th><th>名称</th><th>Tactic</th><th>置信度</th></tr></thead>
-      <tbody>
-        {% for item in result.mitre_json %}
-        <tr><td>{{ item.technique_id }}</td><td>{{ item.name }}</td><td>{{ item.tactic }}</td><td>{{ item.confidence }}</td></tr>
-        {% else %}
-        <tr><td colspan="4"><div class="empty-state">暂无 MITRE 映射</div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>Event ID</div><strong>{{ result.event_id }}</strong></div>
+  <div class="summary-box"><div>Findings</div><strong>{{ result.findings_json|length }}</strong></div>
+  <div class="summary-box"><div>MITRE</div><strong>{{ result.mitre_json|length }}</strong></div>
+  <div class="summary-box"><div>Assets</div><strong>{{ result.impacted_assets_json|length }}</strong></div>
 </div>
 
-<div class="card" style="margin-top:12px">
-  <div class="card-header">
-    <div>
-      <h3>攻击图谱</h3>
-      <div class="subtle" style="margin:4px 0 0">展示分析结果中的资产、finding 和技术关系</div>
+<div class="analysis-layout">
+  <div class="analysis-side">
+    <div class="card">
+      <div class="section-label">分析概要</div>
+      <div class="kv">
+        <div>事件 ID</div><div>{{ result.event_id }}</div>
+        <div>生成时间</div><div>{{ result.created_at }}</div>
+        <div>摘要</div><div style="line-height:1.8;color:#44586f">{{ result.summary }}</div>
+      </div>
     </div>
-    <div class="graph-toolbar">
-      <button class="btn secondary" type="button" onclick="zoomGraph(0.9)">放大</button>
-      <button class="btn secondary" type="button" onclick="zoomGraph(1.1)">缩小</button>
-      <button class="btn secondary" type="button" onclick="resetGraph()">重置</button>
+    <div class="card">
+      <div class="section-label">受影响资产</div>
+      <div class="code">{{ result.impacted_assets_json }}</div>
+    </div>
+    <div class="card">
+      <div class="section-label">图谱原始数据</div>
+      <div class="code">{{ result.graph_json }}</div>
     </div>
   </div>
-  <svg id="graphCanvas" viewBox="0 0 900 420"></svg>
-  <div class="legend">
-    <span><i style="background:#0f172a"></i>资产 / IP</span>
-    <span><i style="background:#c0392b"></i>分析发现</span>
-    <span><i style="background:#0b63b6"></i>MITRE 技术</span>
-  </div>
-  <div class="graph-note">说明：当前为本地分析图谱展示，用于辅助判断攻击链和影响范围。</div>
-</div>
 
-<div class="split" style="margin-top:12px">
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <h3>受影响资产</h3>
-        <div class="subtle" style="margin:4px 0 0">分析结果关联出的资产列表</div>
+  <div class="stack">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h3>攻击图谱</h3>
+          <div class="subtle" style="margin:4px 0 0">展示资产、分析发现与 MITRE 技术之间的关系。</div>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn secondary" type="button" onclick="zoomGraph(0.9)">放大</button>
+          <button class="btn secondary" type="button" onclick="zoomGraph(1.1)">缩小</button>
+          <button class="btn secondary" type="button" onclick="resetGraph()">重置</button>
+        </div>
+      </div>
+      <svg id="graphCanvas" viewBox="0 0 980 480"></svg>
+      <div class="legend">
+        <span><i style="background:#243447"></i>资产 / IP</span>
+        <span><i style="background:#c0392b"></i>分析发现</span>
+        <span><i style="background:#0b63b6"></i>MITRE 技术</span>
       </div>
     </div>
-    <div class="code">{{ result.impacted_assets_json }}</div>
-  </div>
-  <div class="card">
-    <div class="card-header">
-      <div>
-        <h3>图谱原始数据</h3>
-        <div class="subtle" style="margin:4px 0 0">用于调试或导出图谱原始结构</div>
+
+    <div class="split">
+      <div class="card">
+        <div class="section-label">分析发现</div>
+        <table>
+          <thead><tr><th>ID</th><th>名称</th><th>分类</th><th>置信度</th></tr></thead>
+          <tbody>
+            {% for item in result.findings_json %}
+            <tr><td>{{ item.finding_id }}</td><td>{{ item.name }}</td><td>{{ item.category }}</td><td>{{ item.confidence }}</td></tr>
+            {% else %}
+            <tr><td colspan="4"><div class="empty-state">暂无 findings 数据</div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="section-label">MITRE 映射</div>
+        <table>
+          <thead><tr><th>Technique</th><th>名称</th><th>Tactic</th><th>置信度</th></tr></thead>
+          <tbody>
+            {% for item in result.mitre_json %}
+            <tr><td>{{ item.technique_id }}</td><td>{{ item.name }}</td><td>{{ item.tactic }}</td><td>{{ item.confidence }}</td></tr>
+            {% else %}
+            <tr><td colspan="4"><div class="empty-state">暂无 MITRE 映射</div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
-    <div class="code">{{ result.graph_json }}</div>
   </div>
 </div>
 {% endif %}
@@ -120,24 +107,36 @@
 <script>
 const graph = {{ result.graph_json | tojson }};
 const svg = document.getElementById("graphCanvas");
-let viewBox = {x:0,y:0,w:900,h:420};
+let viewBox = {x:0,y:0,w:980,h:480};
 let dragging = false;
 let dragStart = null;
 svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
 
 const nodes = graph.nodes || [];
 const edges = graph.edges || [];
-const centerX = 450;
-const centerY = 210;
-const radius = 150;
 const positions = {};
+const columns = {
+  asset: 150,
+  finding: 490,
+  mitre: 820,
+};
 
-nodes.forEach((node, i) => {
-  const angle = (Math.PI * 2 * i) / Math.max(nodes.length, 1);
-  positions[node.node_key] = {
-    x: centerX + Math.cos(angle) * radius,
-    y: centerY + Math.sin(angle) * radius
-  };
+function calcY(index, total) {
+  if (!total) return 240;
+  const spacing = 380 / Math.max(total - 1, 1);
+  return 50 + (index * spacing);
+}
+
+const grouped = {
+  asset: nodes.filter(node => node.node_type !== 'finding' && node.node_type !== 'mitre'),
+  finding: nodes.filter(node => node.node_type === 'finding'),
+  mitre: nodes.filter(node => node.node_type === 'mitre'),
+};
+
+Object.entries(grouped).forEach(([group, list]) => {
+  list.forEach((node, index) => {
+    positions[node.node_key] = { x: columns[group], y: calcY(index, list.length) };
+  });
 });
 
 edges.forEach(edge => {
@@ -145,21 +144,19 @@ edges.forEach(edge => {
   const dst = positions[edge.dst_key];
   if (!src || !dst) return;
   const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  line.setAttribute("x1", src.x);
+  line.setAttribute("x1", src.x + 54);
   line.setAttribute("y1", src.y);
-  line.setAttribute("x2", dst.x);
+  line.setAttribute("x2", dst.x - 54);
   line.setAttribute("y2", dst.y);
-  line.setAttribute("stroke", "#8ca1b8");
-  line.setAttribute("stroke-width", "1.8");
+  line.setAttribute("stroke", "#9aaaba");
+  line.setAttribute("stroke-width", "1.6");
   svg.appendChild(line);
 
-  const midX = (src.x + dst.x) / 2;
-  const midY = (src.y + dst.y) / 2;
   const edgeText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  edgeText.setAttribute("x", midX);
-  edgeText.setAttribute("y", midY - 5);
+  edgeText.setAttribute("x", (src.x + dst.x) / 2);
+  edgeText.setAttribute("y", (src.y + dst.y) / 2 - 4);
   edgeText.setAttribute("text-anchor", "middle");
-  edgeText.setAttribute("fill", "#657a92");
+  edgeText.setAttribute("fill", "#64748b");
   edgeText.setAttribute("font-size", "11");
   edgeText.textContent = edge.relation;
   svg.appendChild(edgeText);
@@ -167,14 +164,14 @@ edges.forEach(edge => {
 
 nodes.forEach(node => {
   const pos = positions[node.node_key];
+  const group = node.node_type === 'mitre' ? 'mitre' : node.node_type === 'finding' ? 'finding' : 'asset';
   const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  rect.setAttribute("x", pos.x - 38);
+  rect.setAttribute("x", pos.x - 54);
   rect.setAttribute("y", pos.y - 18);
-  rect.setAttribute("width", "76");
+  rect.setAttribute("width", "108");
   rect.setAttribute("height", "36");
-  rect.setAttribute("fill", node.node_type === "mitre" ? "#0b63b6" : node.node_type === "finding" ? "#c0392b" : "#243447");
-  rect.setAttribute("stroke", "#ffffff");
-  rect.setAttribute("stroke-width", "1");
+  rect.setAttribute("rx", "2");
+  rect.setAttribute("fill", group === 'mitre' ? "#0b63b6" : group === 'finding' ? "#c0392b" : "#243447");
   svg.appendChild(rect);
 
   const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -185,10 +182,6 @@ nodes.forEach(node => {
   text.setAttribute("font-size", "11");
   text.textContent = node.label;
   svg.appendChild(text);
-
-  const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-  title.textContent = node.label;
-  rect.appendChild(title);
 });
 
 function applyViewBox() {
@@ -200,10 +193,9 @@ function zoomGraph(factor) {
   applyViewBox();
 }
 function resetGraph() {
-  viewBox = {x:0,y:0,w:900,h:420};
+  viewBox = {x:0,y:0,w:980,h:480};
   applyViewBox();
 }
-
 svg.addEventListener('mousedown', (event) => {
   dragging = true;
   dragStart = {x: event.clientX, y: event.clientY, boxX: viewBox.x, boxY: viewBox.y};

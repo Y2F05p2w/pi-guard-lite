@@ -3,18 +3,30 @@
 {% block page_title %}策略中心{% endblock %}
 {% block breadcrumb %}策略中心{% endblock %}
 {% block content %}
-<p class="subtle">展示自动或人工生成的联动策略及执行状态。列表界面尽量保持传统安全设备后台的阅读方式。</p>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">联动策略管理</div>
+    <div class="module-bar-note">查看自动与手工生成的联动策略、状态、来源事件和目标。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/manual/view">手工处置</a>
+    <a class="btn secondary" href="/blocklist/view">黑名单</a>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>当前页策略数</div><strong id="policies-page-count">{{ items|length }}</strong></div>
+  <div class="summary-box"><div>阻断策略</div><strong id="policies-block-count">-</strong></div>
+  <div class="summary-box"><div>已应用</div><strong id="policies-applied-count">-</strong></div>
+  <div class="summary-box"><div>来源事件关联</div><strong id="policies-event-count">-</strong></div>
+</div>
 
 <div class="card table-panel">
   <div class="loading-mask" id="policiesLoading">正在刷新策略数据...</div>
   <div class="card-header">
     <div>
       <h3>联动策略列表</h3>
-      <div class="subtle" style="margin:6px 0 0 0">用于查看封禁、限流、回滚与人工干预动作</div>
-    </div>
-    <div class="toolbar-right">
-      <span class="pill">8 秒自动刷新</span>
-      <a class="btn secondary" href="/manual/view">手工处置</a>
+      <div class="subtle" style="margin:6px 0 0 0">用于查看封禁、限流、回滚和人工干预动作的执行情况。</div>
     </div>
   </div>
   <div class="toolbar">
@@ -25,13 +37,16 @@
       <option value="50">50 条/页</option>
     </select>
     <button class="btn ghost" id="policiesRefresh">立即刷新</button>
-    <div class="toolbar-right"><span class="auto-refresh" id="policiesTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span></div>
+    <div class="toolbar-right">
+      <span class="pill">8 秒自动刷新</span>
+      <span class="auto-refresh" id="policiesTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
+    </div>
   </div>
   <table>
     <thead>
       <tr>
         <th><button class="link-sort" data-grid="policies" data-sort="id">ID <span class="sort-arrow"></span></button></th>
-        <th>事件ID</th>
+        <th>事件 ID</th>
         <th><button class="link-sort" data-grid="policies" data-sort="action">动作 <span class="sort-arrow"></span></button></th>
         <th><button class="link-sort" data-grid="policies" data-sort="target">目标 <span class="sort-arrow"></span></button></th>
         <th><button class="link-sort" data-grid="policies" data-sort="ttl">TTL <span class="sort-arrow"></span></button></th>
@@ -83,6 +98,13 @@ PiGuardUI.mountGrid({
   query: {{ query|default('', true)|tojson }},
   refreshMs: 8000,
   colspan: 7,
+  onData(data) {
+    const items = data.items || [];
+    document.getElementById('policies-page-count').textContent = items.length;
+    document.getElementById('policies-block-count').textContent = items.filter(item => String(item.action || '').toLowerCase() === 'block_ip').length;
+    document.getElementById('policies-applied-count').textContent = items.filter(item => ['applied', 'simulated'].includes(String(item.status || '').toLowerCase())).length;
+    document.getElementById('policies-event-count').textContent = items.filter(item => item.event_id).length;
+  },
   renderRow(item) {
     return `
       <tr class="clickable" onclick="window.location='/policies/view/${encodeURIComponent(item.id)}'">

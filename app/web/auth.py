@@ -14,6 +14,7 @@ EXEMPT_PATHS = {
 
 EXEMPT_PREFIXES = (
     "/static",
+    "/ingest",
 )
 
 _FAILED_LOGINS: dict[str, dict[str, float | int]] = {}

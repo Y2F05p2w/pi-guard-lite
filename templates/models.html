@@ -108,6 +108,35 @@
   </table>
 </div>
 {% endfor %}
+
+<div class="card" style="margin-top:12px">
+  <div class="card-header">
+    <div>
+      <h3>模型评估记录</h3>
+      <div class="subtle" style="margin:4px 0 0">用于查看模型在样例或真实数据集上的效果验证结果。</div>
+    </div>
+    <a class="btn secondary" href="/models/evaluations">JSON 接口</a>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>模型</th><th>版本</th><th>accuracy</th><th>precision</th><th>recall</th><th>fpr</th><th>时间</th></tr></thead>
+    <tbody>
+      {% for item in evaluations %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.model_name }}</td>
+        <td>{{ item.version or '-' }}</td>
+        <td>{{ item.accuracy }}</td>
+        <td>{{ item.precision }}</td>
+        <td>{{ item.recall }}</td>
+        <td>{{ item.fpr }}</td>
+        <td>{{ item.created_at }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8"><div class="empty-state">暂无模型评估记录</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>

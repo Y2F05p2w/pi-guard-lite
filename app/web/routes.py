@@ -15,10 +15,19 @@ from app.common.config import get_settings, resolve_path
 from app.common.dashboard import build_dashboard_summary
 from app.common.db import get_connection
 from app.common.event_store import get_analysis_result, get_event, get_feature, insert_audit_log, list_events
+from app.common.ingest import ensure_ingest_allowed, process_ingest_batch, process_ingest_event
 from app.common.listing import build_list_payload
+from app.common.model_eval_store import list_model_evaluations
 from app.common.notifier import Notifier
 from app.common.runtime_checks import collect_runtime_report
-from app.common.schemas import HealthResponse, ManualBlockRequest, ManualUnblockRequest, StatsResponse
+from app.common.schemas import (
+    HealthResponse,
+    IngestBatchRequest,
+    IngestRequest,
+    ManualBlockRequest,
+    ManualUnblockRequest,
+    StatsResponse,
+)
 from app.detector.ml_engine import MLInferenceEngine
 from app.detector.model_manager import ModelManager
 from app.executor.factory import get_executor
@@ -355,6 +364,28 @@ def assets() -> list[dict]:
     return list_assets()
 
 
+@router.post("/ingest/raw")
+def ingest_raw(request: Request, payload: IngestRequest) -> dict:
+    ensure_ingest_allowed(request)
+    return process_ingest_event(
+        source=payload.source,
+        payload=payload.payload,
+        raw_path=payload.raw_path,
+        apply_policy=payload.apply_policy,
+        run_probe=payload.run_probe,
+    )
+
+
+@router.post("/ingest/batch")
+def ingest_batch(request: Request, payload: IngestBatchRequest) -> dict:
+    ensure_ingest_allowed(request)
+    return process_ingest_batch(
+        events=payload.events,
+        apply_policy=payload.apply_policy,
+        run_probe=payload.run_probe,
+    )
+
+
 @router.get("/api/assets")
 def assets_api(
     page: int = 1,
@@ -671,7 +702,13 @@ def models_view(request: Request) -> HTMLResponse:
         level=request.query_params.get("level", "info"),
         status=manager.get_status(),
         grouped_versions=manager.grouped_versions(),
+        evaluations=list_model_evaluations(limit=20),
     )
+
+
+@router.get("/models/evaluations")
+def model_evaluations() -> list[dict]:
+    return list_model_evaluations(limit=50)
 
 
 @router.post("/models/import", response_model=None)

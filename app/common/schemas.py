@@ -24,6 +24,26 @@ class RawInputEvent(BaseModel):
     received_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
+class IngestRequest(BaseModel):
+    source: str
+    payload: dict[str, Any]
+    raw_path: str | None = None
+    apply_policy: bool = True
+    run_probe: bool = True
+
+
+class IngestBatchItem(BaseModel):
+    source: str
+    payload: dict[str, Any]
+    raw_path: str | None = None
+
+
+class IngestBatchRequest(BaseModel):
+    events: list[IngestBatchItem]
+    apply_policy: bool = True
+    run_probe: bool = True
+
+
 class SecurityEvent(BaseModel):
     ts: datetime
     source: str
@@ -100,6 +120,22 @@ class NotificationResult(BaseModel):
     sent: bool = False
     channel: str = "none"
     detail: str = ""
+
+
+class ModelEvaluationRecord(BaseModel):
+    model_name: str
+    version: str | None = None
+    dataset_path: str | None = None
+    total_samples: int = 0
+    positive_samples: int = 0
+    negative_samples: int = 0
+    accuracy: float = 0.0
+    precision: float = 0.0
+    recall: float = 0.0
+    fpr: float = 0.0
+    threshold: float = 0.0
+    confusion: dict[str, int] = Field(default_factory=dict)
+    notes: str = ""
 
 
 class AdvancedFinding(BaseModel):

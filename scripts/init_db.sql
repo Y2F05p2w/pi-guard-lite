@@ -77,6 +77,24 @@ CREATE TABLE IF NOT EXISTS model_version (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS model_evaluation (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    model_name TEXT NOT NULL,
+    version TEXT,
+    dataset_path TEXT,
+    total_samples INTEGER DEFAULT 0,
+    positive_samples INTEGER DEFAULT 0,
+    negative_samples INTEGER DEFAULT 0,
+    accuracy REAL DEFAULT 0,
+    precision REAL DEFAULT 0,
+    recall REAL DEFAULT 0,
+    fpr REAL DEFAULT 0,
+    threshold REAL DEFAULT 0,
+    confusion_json TEXT DEFAULT '{}',
+    notes TEXT DEFAULT '',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS analysis_result (
     event_id INTEGER PRIMARY KEY,
     findings_json TEXT DEFAULT '[]',

@@ -62,13 +62,21 @@ scan_listener:
   report_host: "127.0.0.1"
   ports: "2201-2212"
 
+ingest:
+  auth_token: ""
+
 retention:
   cleanup_enabled: true
   raw_days: 7
   log_days: 7
   backup_days: 30
+  raw_rotate_max_mb: 10
+  raw_rotate_max_lines: 5000
 
 ml:
   enabled: false
   anomaly_model_path: "models/anomaly_model.pkl"
   classifier_model_path: "models/classifier_model.pkl"
+  evaluation:
+    classifier_threshold: 0.5
+    anomaly_percentile: 20

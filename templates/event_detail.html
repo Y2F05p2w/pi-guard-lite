@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
 {% block title %}事件详情{% endblock %}
 {% block page_title %}事件详情{% endblock %}
 {% block breadcrumb %}事件中心 / Event {{ event.id if event else '-' }}{% endblock %}
@@ -6,14 +7,26 @@
 {% if not event %}
 <div class="card"><p>未找到对应事件。</p></div>
 {% else %}
+{{ ui.page_module_bar(
+  "事件详情视图",
+  "从基础信息、特征快照和高级分析摘要三个维度查看当前事件。",
+  '<a class="btn secondary" href="/analysis/view/' ~ event.id ~ '">高级分析</a><a class="btn secondary" href="/events/view">返回列表</a>'
+) }}
+
+{{ ui.summary_strip([
+  {"label":"事件 ID","value":event.id},
+  {"label":"事件类型","value":event.event_type},
+  {"label":"来源","value":event.source},
+  {"label":"风险","value":(event.risk_level ~ ' / ' ~ (event.risk_score or '-'))},
+]) }}
+
 <div class="split">
   <div class="card">
     <div class="card-header">
       <div>
         <h3>基础信息</h3>
-        <div class="subtle" style="margin:4px 0 0">查看事件来源、时间、IP、风险等级与原始日志位置。</div>
+        <div class="subtle" style="margin:4px 0 0">查看时间、来源、IP、风险等级与原始日志位置。</div>
       </div>
-      <a class="btn secondary" href="/analysis/view/{{ event.id }}">高级分析</a>
     </div>
     <div class="kv">
       <div>事件 ID</div><div>{{ event.id }}</div>
@@ -60,7 +73,7 @@
       {% for item in analysis.findings_json %}
       <tr><td>{{ item.name }}</td><td>{{ item.category }}</td><td>{{ item.confidence }}</td></tr>
       {% else %}
-      <tr><td colspan="3"><div class="empty-state">暂无分析发现</div></td></tr>
+      {{ ui.empty_row(3, '暂无分析发现') }}
       {% endfor %}
     </tbody>
   </table>

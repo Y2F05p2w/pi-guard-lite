@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
 {% block title %}黑名单详情{% endblock %}
 {% block page_title %}黑名单详情{% endblock %}
 {% block breadcrumb %}黑名单 / Entry {{ entry.id if entry else '-' }}{% endblock %}
@@ -6,13 +7,25 @@
 {% if not entry %}
 <div class="card"><p>未找到对应黑名单记录。</p></div>
 {% else %}
+{{ ui.page_module_bar(
+  "黑名单详情视图",
+  "查看目标 IP、阻断原因、状态和关联策略。",
+  '<a class="btn secondary" href="/blocklist/view">返回列表</a><a class="btn secondary" href="/policies/view">策略中心</a>'
+) }}
+
+{{ ui.summary_strip([
+  {"label":"记录 ID","value":entry.id},
+  {"label":"目标 IP","value":entry.target_ip},
+  {"label":"状态","value":entry.status},
+  {"label":"过期时间","value":(entry.expire_at or '-')},
+]) }}
+
 <div class="card">
   <div class="card-header">
     <div>
       <h3>阻断信息</h3>
       <div class="subtle" style="margin:4px 0 0">查看目标 IP、阻断原因、状态和过期时间。</div>
     </div>
-    <a class="btn secondary" href="/policies/view">策略中心</a>
   </div>
   <div class="kv">
     <div>记录 ID</div><div>{{ entry.id }}</div>
@@ -37,7 +50,7 @@
       {% for item in related_policies %}
       <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.action }}</td><td>{{ item.status }}</td><td>{{ item.created_at }}</td></tr>
       {% else %}
-      <tr><td colspan="4"><div class="empty-state">暂无关联策略</div></td></tr>
+      {{ ui.empty_row(4, '暂无关联策略') }}
       {% endfor %}
     </tbody>
   </table>

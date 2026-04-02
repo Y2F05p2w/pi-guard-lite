@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
 {% block title %}资产详情{% endblock %}
 {% block page_title %}资产详情{% endblock %}
 {% block breadcrumb %}资产画像 / {{ asset.ip if asset else '-' }}{% endblock %}
@@ -6,13 +7,25 @@
 {% if not asset %}
 <div class="card"><p>未找到对应资产。</p></div>
 {% else %}
+{{ ui.page_module_bar(
+  "资产详情视图",
+  "从资产信息、关联事件、关联策略和黑名单四个维度查看当前资产。",
+  '<a class="btn secondary" href="/assets/view">返回列表</a><a class="btn secondary" href="/events/view">事件中心</a>'
+) }}
+
+{{ ui.summary_strip([
+  {"label":"资产 IP","value":asset.ip},
+  {"label":"主机名","value":asset.hostname},
+  {"label":"类型","value":asset.asset_type},
+  {"label":"重要性","value":asset.importance},
+]) }}
+
 <div class="card">
   <div class="card-header">
     <div>
       <h3>资产信息</h3>
-      <div class="subtle" style="margin:4px 0 0">查看资产的地址、类型、重要性与负责人。</div>
+      <div class="subtle" style="margin:4px 0 0">查看资产地址、类型、重要性和负责人。</div>
     </div>
-    <a class="btn secondary" href="/assets/view">返回资产列表</a>
   </div>
   <div class="kv">
     <div>IP</div><div>{{ asset.ip }}</div>
@@ -37,7 +50,7 @@
         {% for item in related_events %}
         <tr><td><a href="/events/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.event_type }}</td><td>{{ item.src_ip or '-' }}</td><td>{{ item.risk_level }} / {{ item.risk_score }}</td></tr>
         {% else %}
-        <tr><td colspan="4"><div class="empty-state">暂无关联事件</div></td></tr>
+        {{ ui.empty_row(4, '暂无关联事件') }}
         {% endfor %}
       </tbody>
     </table>
@@ -56,7 +69,7 @@
         {% for item in related_policies %}
         <tr><td><a href="/policies/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.action }}</td><td>{{ item.status }}</td></tr>
         {% else %}
-        <tr><td colspan="3"><div class="empty-state">暂无关联策略</div></td></tr>
+        {{ ui.empty_row(3, '暂无关联策略') }}
         {% endfor %}
       </tbody>
     </table>
@@ -68,7 +81,7 @@
         {% for item in related_blocklist %}
         <tr><td><a href="/blocklist/view/{{ item.id }}">{{ item.id }}</a></td><td>{{ item.status }}</td><td>{{ item.expire_at or '-' }}</td></tr>
         {% else %}
-        <tr><td colspan="3"><div class="empty-state">暂无关联黑名单</div></td></tr>
+        {{ ui.empty_row(3, '暂无关联黑名单') }}
         {% endfor %}
       </tbody>
     </table>

@@ -1,0 +1,26 @@
+{% macro page_module_bar(title, note, action_html='') -%}
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">{{ title }}</div>
+    <div class="module-bar-note">{{ note }}</div>
+  </div>
+  {% if action_html %}
+  <div class="toolbar-right">{{ action_html | safe }}</div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro summary_strip(items) -%}
+<div class="summary-strip" style="margin-bottom:12px">
+  {% for item in items %}
+  <div class="summary-box">
+    <div>{{ item.label }}</div>
+    <strong>{{ item.value }}</strong>
+  </div>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro empty_row(colspan, text='暂无数据') -%}
+<tr><td colspan="{{ colspan }}"><div class="empty-state">{{ text }}</div></td></tr>
+{%- endmacro %}

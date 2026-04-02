@@ -7,19 +7,38 @@
 <div class="message {{ 'success' if level == 'success' else 'info' }}">{{ message }}</div>
 {% endif %}
 
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">通知链路管理</div>
+    <div class="module-bar-note">查看通知通道状态并发送测试通知。</div>
+  </div>
+  <div class="toolbar-right">
+    <form method="post" action="/notifications/test">
+      <button class="btn" type="submit">发送测试通知</button>
+    </form>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>Enabled</div><strong id="sum-notify-enabled">{{ status.enabled }}</strong></div>
+  <div class="summary-box"><div>Channel</div><strong id="sum-notify-channel">{{ status.channel }}</strong></div>
+  <div class="summary-box"><div>Webhook</div><strong id="sum-notify-configured">{{ status.webhook_configured }}</strong></div>
+  <div class="summary-box"><div>Timeout</div><strong id="sum-notify-timeout">{{ status.timeout_seconds }}</strong></div>
+</div>
+
 <div class="card">
-  <h3>当前状态</h3>
+  <div class="card-header">
+    <div>
+      <h3>当前状态</h3>
+      <div class="subtle" style="margin:4px 0 0">用于确认通知链路是否启用和配置完整。</div>
+    </div>
+    <span class="pill">5 秒自动刷新</span>
+  </div>
   <div class="kv">
     <div>enabled</div><div id="notify-enabled">{{ status.enabled }}</div>
     <div>channel</div><div id="notify-channel">{{ status.channel }}</div>
     <div>webhook configured</div><div id="notify-configured">{{ status.webhook_configured }}</div>
     <div>timeout seconds</div><div id="notify-timeout">{{ status.timeout_seconds }}</div>
-  </div>
-  <div class="toolbar" style="margin-top:16px">
-    <form method="post" action="/notifications/test">
-      <button class="btn" type="submit">发送测试通知</button>
-    </form>
-    <span class="auto-refresh">状态每 5 秒自动刷新</span>
   </div>
 </div>
 {% endblock %}
@@ -30,6 +49,10 @@ async function refreshNotifier() {
     const resp = await fetch('/notifications/status', {credentials:'same-origin'});
     if (!resp.ok) return;
     const data = await resp.json();
+    document.getElementById('sum-notify-enabled').textContent = data.enabled;
+    document.getElementById('sum-notify-channel').textContent = data.channel;
+    document.getElementById('sum-notify-configured').textContent = data.webhook_configured;
+    document.getElementById('sum-notify-timeout').textContent = data.timeout_seconds;
     document.getElementById('notify-enabled').textContent = data.enabled;
     document.getElementById('notify-channel').textContent = data.channel;
     document.getElementById('notify-configured').textContent = data.webhook_configured;

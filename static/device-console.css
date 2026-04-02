@@ -494,6 +494,23 @@ th button.link-sort{
   font-weight:700;
   text-transform:uppercase;
 }
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.form-stack{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.field-block label{
+  display:block;
+  margin-bottom:4px;
+  color:#5f7388;
+  font-size:12px;
+  font-weight:700;
+}
 
 .device-login-shell{
   min-height:100vh;

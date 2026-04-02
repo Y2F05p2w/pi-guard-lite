@@ -7,21 +7,60 @@
 <div class="message {{ 'success' if level == 'success' else 'info' }}">{{ message }}</div>
 {% endif %}
 
-<div class="split">
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">模型导入与版本管理</div>
+    <div class="module-bar-note">用于导入、激活和查看异常模型、分类模型版本。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/ml/status">模型状态</a>
+    <a class="btn secondary" href="/system/view">系统总览</a>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>记录总数</div><strong>{{ status.count }}</strong></div>
+  <div class="summary-box"><div>Anomaly 当前版本</div><strong>{{ status.active_versions.get('anomaly', {}).get('version', '-') }}</strong></div>
+  <div class="summary-box"><div>Classifier 当前版本</div><strong>{{ status.active_versions.get('classifier', {}).get('version', '-') }}</strong></div>
+  <div class="summary-box"><div>模型分类数</div><strong>{{ grouped_versions|length }}</strong></div>
+</div>
+
+<div class="form-grid">
   <div class="card">
-    <h3>导入模型</h3>
-    <form method="post" action="/models/import" enctype="multipart/form-data">
-      <label>模型类型</label>
-      <select name="model_name"><option value="anomaly">anomaly</option><option value="classifier">classifier</option></select>
-      <label>版本号（可选）</label><input name="version" value="">
-      <label>文件</label><input type="file" name="model_file">
-      <label>激活</label>
-      <select name="activate"><option value="true">true</option><option value="false">false</option></select>
+    <div class="card-header">
+      <div>
+        <h3>导入模型</h3>
+        <div class="subtle" style="margin:4px 0 0">上传模型文件，并按需立即激活。</div>
+      </div>
+    </div>
+    <form method="post" action="/models/import" enctype="multipart/form-data" class="form-stack">
+      <div class="field-block">
+        <label>模型类型</label>
+        <select name="model_name"><option value="anomaly">anomaly</option><option value="classifier">classifier</option></select>
+      </div>
+      <div class="field-block">
+        <label>版本号（可选）</label>
+        <input name="version" value="">
+      </div>
+      <div class="field-block">
+        <label>文件</label>
+        <input type="file" name="model_file">
+      </div>
+      <div class="field-block">
+        <label>激活</label>
+        <select name="activate"><option value="true">true</option><option value="false">false</option></select>
+      </div>
       <button class="btn" type="submit">导入模型</button>
     </form>
   </div>
+
   <div class="card">
-    <h3>当前状态</h3>
+    <div class="card-header">
+      <div>
+        <h3>当前状态</h3>
+        <div class="subtle" style="margin:4px 0 0">查看配置路径和当前版本。</div>
+      </div>
+    </div>
     <div class="kv">
       <div>记录总数</div><div>{{ status.count }}</div>
       <div>Anomaly 目标路径</div><div>{{ status.configured.anomaly or "-" }}</div>
@@ -33,10 +72,13 @@
 </div>
 
 {% for model_name, items in grouped_versions.items() %}
-<div class="card" style="margin-top:16px">
-  <div class="section-title">
-    <h3>{{ model_name }} 版本</h3>
-    <span class="tag info">共 {{ items|length }} 个版本</span>
+<div class="card" style="margin-top:12px">
+  <div class="card-header">
+    <div>
+      <h3>{{ model_name }} 版本列表</h3>
+      <div class="subtle" style="margin:4px 0 0">该分类下共 {{ items|length }} 个版本记录。</div>
+    </div>
+    <span class="pill">共 {{ items|length }} 个版本</span>
   </div>
   <div class="toolbar">
     <input class="search-box model-filter" data-target="model-{{ model_name }}" placeholder="搜索版本 / 文件 / 时间">
@@ -59,6 +101,8 @@
           </form>
         </td>
       </tr>
+      {% else %}
+      <tr><td colspan="6"><div class="empty-state">暂无版本记录</div></td></tr>
       {% endfor %}
     </tbody>
   </table>

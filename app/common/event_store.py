@@ -61,6 +61,20 @@ def insert_audit_log(category: str, action: str, detail: dict[str, Any] | str) -
         conn.commit()
 
 
+def list_audit_logs(limit: int = 100) -> list[dict[str, Any]]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, category, action, detail, created_at
+            FROM audit_log
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
 def list_events(limit: int = 50) -> list[dict[str, Any]]:
     with get_connection() as conn:
         rows = conn.execute(

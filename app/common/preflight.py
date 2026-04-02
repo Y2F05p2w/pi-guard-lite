@@ -152,6 +152,7 @@ def _check_systemd_units(project_root: Path) -> list[dict[str, Any]]:
     for name in (
         "pi-guard-lite.service",
         "pi-guard-lite-pipeline.service",
+        "pi-guard-lite-input-supervisor.service",
         "pi-guard-lite-fluentbit.service",
         "pi-guard-lite-scan-listener.service",
         "pi-guard-lite-release-expired.service",

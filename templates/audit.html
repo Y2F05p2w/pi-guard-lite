@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}审计日志{% endblock %}
+{% block page_title %}审计日志{% endblock %}
+{% block breadcrumb %}审计日志{% endblock %}
+{% block content %}
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">审计日志中心</div>
+    <div class="module-bar-note">查看登录、接入、策略执行和流水线处理等关键操作记录。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/audit">JSON 接口</a>
+    <a class="btn secondary" href="/system/view">系统总览</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3>审计记录</h3>
+      <div class="subtle" style="margin:4px 0 0">按时间倒序显示最近 200 条审计日志。</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>分类</th><th>动作</th><th>详情</th><th>时间</th></tr></thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.category }}</td>
+        <td>{{ item.action }}</td>
+        <td><div class="code">{{ item.detail }}</div></td>
+        <td>{{ item.created_at }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5"><div class="empty-state">暂无审计日志</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

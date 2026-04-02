@@ -35,6 +35,7 @@ $SUDO systemctl daemon-reload
 echo "[*] enabling core services"
 $SUDO systemctl enable pi-guard-lite.service
 $SUDO systemctl enable pi-guard-lite-pipeline.service
+$SUDO systemctl enable pi-guard-lite-input-supervisor.service || true
 $SUDO systemctl enable pi-guard-lite-release-expired.timer
 
 echo "[*] optional service (enable manually if needed): pi-guard-lite-fluentbit.service"

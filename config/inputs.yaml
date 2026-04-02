@@ -1,0 +1,14 @@
+inputs:
+  - name: "suricata-default"
+    source: "suricata"
+    file: "/var/log/suricata/eve.json"
+    mode: "tail"
+    apply_policy: true
+    run_probe: true
+
+  - name: "auth-default"
+    source: "auth.log"
+    file: "/var/log/auth.log"
+    mode: "tail"
+    apply_policy: true
+    run_probe: false

@@ -1,0 +1,13 @@
+[Unit]
+Description=Pi-Guard Lite Input Supervisor
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pi-guard-lite
+ExecStart=/opt/pi-guard-lite/.venv/bin/python scripts/run_input_supervisor.py --config /opt/pi-guard-lite/config/inputs.yaml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

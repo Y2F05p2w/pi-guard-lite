@@ -14,7 +14,7 @@ from app.common.assets import get_asset, list_assets
 from app.common.config import get_settings, resolve_path
 from app.common.dashboard import build_dashboard_summary
 from app.common.db import get_connection
-from app.common.event_store import get_analysis_result, get_event, get_feature, insert_audit_log, list_events
+from app.common.event_store import get_analysis_result, get_event, get_feature, insert_audit_log, list_audit_logs, list_events
 from app.common.ingest import ensure_ingest_allowed, process_ingest_batch, process_ingest_event
 from app.common.listing import build_list_payload
 from app.common.model_eval_store import list_model_evaluations
@@ -406,6 +406,21 @@ def probes_api(
     q: str = "",
 ) -> dict:
     return _build_probe_payload(page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order, query=q)
+
+
+@router.get("/audit")
+def audit_logs(limit: int = 100) -> list[dict]:
+    return list_audit_logs(limit=limit)
+
+
+@router.get("/audit/view", response_class=HTMLResponse)
+def audit_view(request: Request) -> HTMLResponse:
+    return _render_page(
+        request,
+        "audit.html",
+        "system",
+        items=list_audit_logs(limit=200),
+    )
 
 
 @router.get("/events/view", response_class=HTMLResponse)

@@ -4,296 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ settings.app.name }}{% endblock %}</title>
-  <style>
-    :root{
-      --bg:#f3f6fa;
-      --panel:#ffffff;
-      --panel-2:#f9fbfd;
-      --border:#d6dee8;
-      --border-2:#c4d1e0;
-      --text:#1f2d3d;
-      --muted:#708090;
-      --blue:#0b63b6;
-      --blue-2:#0a4f91;
-      --nav:#eef3f8;
-      --success:#2e8b57;
-      --warning:#d97706;
-      --danger:#c0392b;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:"Microsoft YaHei","Segoe UI",Arial,sans-serif;font-size:14px}
-    body{min-width:1200px}
-    a{text-decoration:none;color:#0a58a8}
-    .shell{min-height:100vh}
-    .globalbar{
-      height:56px;
-      background:linear-gradient(180deg,#0c67bc,#0a5aa6);
-      color:#fff;
-      border-bottom:1px solid #08457d;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 16px;
-    }
-    .brand-wrap{display:flex;align-items:center;gap:10px}
-    .brand-mark{
-      width:30px;height:30px;
-      background:#ffffff22;
-      border:1px solid #ffffff33;
-      display:flex;align-items:center;justify-content:center;
-      font-weight:700;
-    }
-    .brand-text strong{display:block;font-size:16px;font-weight:600}
-    .brand-text small{display:block;font-size:11px;color:#dbe9f8}
-    .global-tabs{display:flex;height:100%}
-    .global-tabs a{
-      height:100%;
-      display:flex;align-items:center;
-      padding:0 18px;
-      color:#e7f0fb;
-      border-left:1px solid #ffffff12;
-      border-right:1px solid #00000010;
-    }
-    .global-tabs a.active,
-    .global-tabs a:hover{
-      background:#ffffff16;
-      color:#fff;
-    }
-    .global-status{display:flex;align-items:center;gap:8px}
-    .chip{
-      display:inline-flex;align-items:center;gap:6px;
-      height:28px;padding:0 10px;
-      background:#ffffff14;
-      border:1px solid #ffffff20;
-      color:#fff;font-size:12px;
-    }
-    .dot{width:8px;height:8px;border-radius:50%;background:#8bbcf0}
-    .dot.ok{background:#66c18c}
-    .dot.warn{background:#f0b44d}
-    .dot.err{background:#e67b73}
-    .user-link{color:#fff;font-size:12px}
-
-    .workspace{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px)}
-    .sidebar{
-      background:var(--nav);
-      border-right:1px solid var(--border-2);
-      padding:10px 0 16px;
-    }
-    .sidebar h3{
-      margin:14px 0 8px;
-      padding:0 16px;
-      font-size:12px;
-      color:#5f7388;
-      font-weight:700;
-      letter-spacing:.03em;
-    }
-    .menu a{
-      display:flex;align-items:center;justify-content:space-between;
-      min-height:38px;
-      padding:0 16px;
-      color:#29415b;
-      border-top:1px solid transparent;
-      border-bottom:1px solid transparent;
-    }
-    .menu a:hover{
-      background:#f8fbff;
-      border-top-color:#e0e8f0;
-      border-bottom-color:#e0e8f0;
-    }
-    .menu a.active{
-      background:#ffffff;
-      color:#0a5aa6;
-      font-weight:700;
-      border-top-color:#cfd9e3;
-      border-bottom-color:#cfd9e3;
-      border-left:3px solid #0a5aa6;
-      padding-left:13px;
-    }
-    .menu-note{
-      padding:0 16px;
-      font-size:11px;
-      color:#8798a9;
-      line-height:1.5;
-    }
-    .menu-badge{
-      padding:1px 6px;
-      font-size:11px;
-      background:#dbe9f8;
-      color:#34679b;
-      border:1px solid #c5d8eb;
-    }
-
-    .content{display:flex;flex-direction:column;min-width:0}
-    .section-tabs{
-      display:flex;
-      gap:0;
-      padding:0 14px;
-      background:#f6f9fc;
-      border-bottom:1px solid var(--border);
-    }
-    .section-tabs a{
-      display:flex;align-items:center;
-      height:40px;
-      padding:0 14px;
-      color:#42617f;
-      border-right:1px solid #e0e8f0;
-    }
-    .section-tabs a.active,
-    .section-tabs a:hover{
-      background:#fff;
-      color:#0a5aa6;
-      font-weight:600;
-    }
-
-    .subbar{
-      background:#fff;
-      border-bottom:1px solid var(--border);
-      padding:14px 18px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:16px;
-    }
-    .subbar-left strong{display:block;font-size:22px;font-weight:600}
-    .subbar-left small{display:block;margin-top:4px;color:var(--muted)}
-    .subbar-right{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-    .sub-stat{
-      display:inline-flex;align-items:center;gap:6px;
-      height:30px;padding:0 10px;
-      background:var(--panel-2);
-      border:1px solid var(--border);
-      color:#3f556d;
-      font-size:12px;
-    }
-    .sub-time{font-size:12px;color:var(--muted);min-width:150px;text-align:right;padding-top:6px}
-
-    .page{padding:18px}
-    .crumbs{margin-bottom:10px;color:var(--muted);font-size:12px}
-    .subtle{margin:0 0 14px;color:var(--muted);line-height:1.7}
-    .grid{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:12px}
-    .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .triple{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .card{
-      background:var(--panel);
-      border:1px solid var(--border);
-      padding:14px;
-    }
-    .card.tight{padding:0}
-    .card h2,.card h3,.card h4{margin:0 0 10px;font-size:16px}
-    .card-header{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-      margin-bottom:12px;
-      padding-bottom:10px;
-      border-bottom:1px solid #edf2f6;
-    }
-    .stat-title{font-size:12px;color:var(--muted)}
-    .stat-value{margin-top:6px;font-size:28px;font-weight:700;color:#10263f}
-    .toolbar{
-      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-      margin-bottom:12px;
-    }
-    .toolbar.compact{margin-bottom:8px}
-    .toolbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .btn,button.btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      height:34px;padding:0 12px;
-      border:1px solid #a9c1dc;
-      background:#0a63b6;color:#fff;
-      cursor:pointer;font:inherit;
-    }
-    .btn.secondary{background:#fff;color:#0a5aa6;border-color:#b8cbe0}
-    .btn.ghost{background:#f7fbff;color:#355b83;border-color:#d0dceb}
-    .btn.danger{background:#c0392b;border-color:#aa3024}
-    .search-box,input,select,textarea{
-      width:100%;max-width:340px;
-      height:34px;padding:0 10px;
-      border:1px solid #bcc8d6;
-      background:#fff;
-      color:var(--text);font:inherit;
-    }
-    textarea{height:auto;min-height:100px;padding:8px 10px}
-    .auto-refresh{font-size:12px;color:var(--muted)}
-    .pill,.mini-stat{
-      display:inline-flex;align-items:center;gap:6px;
-      height:30px;padding:0 10px;
-      background:#f5f9fd;
-      border:1px solid var(--border);
-      color:#46617d;
-      font-size:12px;
-    }
-    .status-dot{width:8px;height:8px;border-radius:50%;background:#8bbcf0}
-    .status-dot.ok{background:#66c18c}
-    .status-dot.warn{background:#f0b44d}
-    .status-dot.err{background:#e67b73}
-    .status-dot.info{background:#5d96db}
-    table{
-      width:100%;
-      border-collapse:collapse;
-      background:#fff;
-      border:1px solid var(--border);
-    }
-    thead{background:#f4f8fb}
-    th,td{
-      padding:10px 12px;
-      border-bottom:1px solid #e4ebf2;
-      text-align:left;
-      vertical-align:top;
-      font-size:13px;
-    }
-    tbody tr:nth-child(even){background:#fbfdff}
-    tbody tr:hover{background:#f2f7fc}
-    tr:last-child td{border-bottom:none}
-    th button.link-sort{
-      border:none;background:none;padding:0;cursor:pointer;
-      color:#32506f;font-weight:600;font:inherit;
-    }
-    .tag{
-      display:inline-flex;align-items:center;justify-content:center;
-      min-width:58px;height:22px;padding:0 8px;
-      border:1px solid #d8e2ec;
-      font-size:12px;font-weight:600;
-    }
-    .tag.low{background:#eef8f2;color:#19603a;border-color:#cde7d6}
-    .tag.medium{background:#fff7ea;color:#a86500;border-color:#f1ddb3}
-    .tag.high{background:#fff1ef;color:#b13a2e;border-color:#efc8c2}
-    .tag.critical{background:#feeceb;color:#97281f;border-color:#ebbab5}
-    .tag.info{background:#eef5ff;color:#245fa5;border-color:#cfe0f6}
-    .message{padding:10px 12px;margin-bottom:12px;border:1px solid}
-    .message.success{background:#edf8f0;color:#166534;border-color:#cce8d4}
-    .message.info{background:#edf5ff;color:#1d4e89;border-color:#cfe0f5}
-    .message.error{background:#fff1ef;color:#a33126;border-color:#efc5bf}
-    .kv{display:grid;grid-template-columns:150px 1fr;gap:8px 12px;font-size:13px}
-    .code{
-      white-space:pre-wrap;word-break:break-all;
-      background:#0f172a;color:#dbeafe;
-      padding:12px;font-family:Consolas,monospace;font-size:12px;
-    }
-    .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
-    .legend span{display:inline-flex;align-items:center;gap:6px}
-    .legend i{display:inline-block;width:10px;height:10px;border-radius:50%}
-    .progress-list{display:flex;flex-direction:column;gap:10px}
-    .progress-row{display:grid;grid-template-columns:140px 1fr 40px;align-items:center;gap:10px}
-    .progress-label{font-size:13px;color:#314a65}
-    .progress-bar{height:8px;background:#eaf0f6;border:1px solid #dde6ef;overflow:hidden}
-    .progress-bar span{display:block;height:100%;background:#4d8ed3}
-    .pager{
-      display:flex;align-items:center;justify-content:space-between;
-      gap:10px;flex-wrap:wrap;margin-top:12px;
-    }
-    .pager-actions{display:flex;align-items:center;gap:8px}
-    .empty-state{
-      padding:22px;text-align:center;color:var(--muted);
-      background:#fafcfe;border:1px dashed #d3dde8;
-    }
-    .loading-mask{
-      position:absolute;inset:0;display:none;align-items:center;justify-content:center;
-      background:rgba(255,255,255,.65);font-size:13px;color:#4c6683;
-    }
-    .table-panel{position:relative}
-    @media (max-width: 1400px){
-      body{min-width:1100px}
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', path='device-console.css') }}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -301,263 +12,110 @@
 {% set policy_navs = ['policies', 'blocklist', 'manual'] %}
 {% set operations_navs = ['assets', 'probes', 'system'] %}
 {% set config_navs = ['models', 'notifications', 'runtime'] %}
-  <div class="shell">
-    <header class="globalbar">
-      <div class="brand-wrap">
-        <div class="brand-mark">PG</div>
-        <div class="brand-text">
-          <strong>{{ settings.app.name }}</strong>
-          <small>智能防御控制台</small>
-        </div>
+<div class="shell">
+  <header class="globalbar">
+    <div class="brand-wrap">
+      <div class="brand-mark">PG</div>
+      <div class="brand-text">
+        <strong>{{ settings.app.name }}</strong>
+        <small>智能防御控制台</small>
       </div>
-      <nav class="global-tabs">
-        <a href="/" class="{% if active_nav in monitor_navs %}active{% endif %}">监控分析</a>
-        <a href="/policies/view" class="{% if active_nav in policy_navs %}active{% endif %}">策略处置</a>
-        <a href="/assets/view" class="{% if active_nav in operations_navs %}active{% endif %}">资产运营</a>
-        <a href="/models/view" class="{% if active_nav in config_navs %}active{% endif %}">系统配置</a>
-      </nav>
-      <div class="global-status">
-        <span class="chip"><span class="dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}" id="scan-dot"></span><span id="scan-text">扫描监听 {{ '在线' if scan_listener_status.running else '离线' }}</span></span>
-        <span class="chip"><span class="dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}" id="notify-dot"></span><span id="notify-text">通知 {{ '启用' if notifier_status.enabled else '关闭' }}</span></span>
-        <span class="user-link">{{ current_user or 'admin' }}</span>
-        <a class="user-link" href="/logout">退出</a>
-      </div>
-    </header>
-
-    <div class="workspace">
-      <aside class="sidebar">
-        <h3>监控分析</h3>
-        <div class="menu">
-          <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">控制台首页 <span class="menu-badge">总览</span></a>
-          <a href="/events/view" class="{% if active_nav == 'events' %}active{% endif %}">事件中心</a>
-          <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">高级分析</a>
-          <a href="/scan-listener/view" class="{% if active_nav == 'scan_listener' %}active{% endif %}">扫描监听</a>
-        </div>
-        <div class="menu-note">用于查看威胁事件、攻击分析和扫描接入状态。</div>
-
-        <h3>策略处置</h3>
-        <div class="menu">
-          <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">策略中心</a>
-          <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">黑名单</a>
-          <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">手工处置</a>
-        </div>
-        <div class="menu-note">用于查看联动策略、阻断名单及人工干预动作。</div>
-
-        <h3>资产运营</h3>
-        <div class="menu">
-          <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产画像</a>
-          <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">探测回滚</a>
-          <a href="/system/view" class="{% if active_nav == 'system' %}active{% endif %}">系统总览</a>
-        </div>
-        <div class="menu-note">用于查看资产、业务探测回滚和系统整体状态。</div>
-
-        <h3>系统配置</h3>
-        <div class="menu">
-          <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型管理</a>
-          <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知管理</a>
-          <a href="/runtime/view" class="{% if active_nav == 'runtime' %}active{% endif %}">运行状态</a>
-        </div>
-        <div class="menu-note">用于模型、通知与运行环境状态检查。</div>
-      </aside>
-
-      <section class="content">
-        <nav class="section-tabs">
-          {% if active_nav in monitor_navs %}
-            <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">态势总览</a>
-            <a href="/events/view" class="{% if active_nav == 'events' %}active{% endif %}">威胁事件</a>
-            <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">攻击分析</a>
-            <a href="/scan-listener/view" class="{% if active_nav == 'scan_listener' %}active{% endif %}">监听接入</a>
-          {% elif active_nav in policy_navs %}
-            <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">联动策略</a>
-            <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">阻断名单</a>
-            <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">人工干预</a>
-          {% elif active_nav in operations_navs %}
-            <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产台账</a>
-            <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">回滚探测</a>
-            <a href="/system/view" class="{% if active_nav == 'system' %}active{% endif %}">设备总览</a>
-          {% else %}
-            <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型配置</a>
-            <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知链路</a>
-            <a href="/runtime/view" class="{% if active_nav == 'runtime' %}active{% endif %}">运行诊断</a>
-          {% endif %}
-        </nav>
-
-        <div class="subbar">
-          <div class="subbar-left">
-            <strong>{% block page_title %}{{ settings.app.name }}{% endblock %}</strong>
-            <small>{% block page_desc %}统一安全控制、分析与联动处置平台{% endblock %}</small>
-          </div>
-          <div class="subbar-right">
-            <span class="sub-stat">事件 <strong id="top-events">-</strong></span>
-            <span class="sub-stat">策略 <strong id="top-policies">-</strong></span>
-            <span class="sub-stat">封禁 <strong id="top-blocked">-</strong></span>
-            <span class="sub-stat">Critical <strong id="top-critical">-</strong></span>
-            <span class="sub-time" id="topbar-time"></span>
-          </div>
-        </div>
-
-        <main class="page">
-          <div class="crumbs">Home / {% block breadcrumb %}{{ settings.app.name }}{% endblock %}</div>
-          {% block content %}{% endblock %}
-        </main>
-      </section>
     </div>
-  </div>
+    <nav class="global-tabs">
+      <a href="/" class="{% if active_nav in monitor_navs %}active{% endif %}">监控分析</a>
+      <a href="/policies/view" class="{% if active_nav in policy_navs %}active{% endif %}">策略处置</a>
+      <a href="/assets/view" class="{% if active_nav in operations_navs %}active{% endif %}">资产运营</a>
+      <a href="/models/view" class="{% if active_nav in config_navs %}active{% endif %}">系统配置</a>
+    </nav>
+    <div class="global-status">
+      <span class="chip"><span class="dot {% if scan_listener_status.running %}ok{% else %}warn{% endif %}" id="scan-dot"></span><span id="scan-text">扫描监听 {{ '在线' if scan_listener_status.running else '离线' }}</span></span>
+      <span class="chip"><span class="dot {% if notifier_status.enabled %}ok{% else %}warn{% endif %}" id="notify-dot"></span><span id="notify-text">通知 {{ '启用' if notifier_status.enabled else '关闭' }}</span></span>
+      <span class="user-link">{{ current_user or 'admin' }}</span>
+      <a class="user-link" href="/logout">退出</a>
+    </div>
+  </header>
 
-  <script>
-    function updateClock() {
-      const el = document.getElementById('topbar-time');
-      if (el) el.textContent = new Date().toLocaleString();
-    }
-    async function refreshTopState() {
-      try {
-        const [scanResp, notifyResp, dashResp] = await Promise.all([
-          fetch('/scan-listener/status', {credentials:'same-origin'}),
-          fetch('/notifications/status', {credentials:'same-origin'}),
-          fetch('/dashboard/summary', {credentials:'same-origin'}),
-        ]);
-        if (scanResp.ok) {
-          const data = await scanResp.json();
-          const dot = document.getElementById('scan-dot');
-          const text = document.getElementById('scan-text');
-          if (dot && text) {
-            dot.className = 'dot ' + (data.running ? 'ok' : 'warn');
-            text.textContent = '扫描监听 ' + (data.running ? '在线' : '离线');
-          }
-        }
-        if (notifyResp.ok) {
-          const data = await notifyResp.json();
-          const dot = document.getElementById('notify-dot');
-          const text = document.getElementById('notify-text');
-          if (dot && text) {
-            dot.className = 'dot ' + (data.enabled ? 'ok' : 'warn');
-            text.textContent = '通知 ' + (data.enabled ? '启用' : '关闭');
-          }
-        }
-        if (dashResp.ok) {
-          const data = await dashResp.json();
-          const stats = data.stats || {};
-          const risk = data.risk_summary || {};
-          document.getElementById('top-events').textContent = stats.events ?? '-';
-          document.getElementById('top-policies').textContent = stats.policies ?? '-';
-          document.getElementById('top-blocked').textContent = stats.blocked ?? '-';
-          document.getElementById('top-critical').textContent = risk.critical ?? '-';
-        }
-      } catch (e) {}
-    }
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-    function sortArrow(currentSortBy, currentSortOrder, field) {
-      if (currentSortBy !== field) return '';
-      return currentSortOrder === 'asc' ? '▲' : '▼';
-    }
-    window.PiGuardUI = {
-      escapeHtml,
-      sortArrow,
-      mountGrid(config) {
-        const state = {
-          page: Number(config.page || 1),
-          page_size: Number(config.pageSize || 20),
-          sort_by: config.sortBy || 'id',
-          sort_order: config.sortOrder || 'desc',
-          q: config.query || '',
-        };
-        const bodyEl = document.getElementById(config.bodyId);
-        const totalEl = document.getElementById(config.totalId);
-        const prevEl = document.getElementById(config.prevId);
-        const nextEl = document.getElementById(config.nextId);
-        const pageEl = document.getElementById(config.pageId);
-        const sizeEl = document.getElementById(config.pageSizeId);
-        const searchEl = document.getElementById(config.searchId);
-        const refreshEl = document.getElementById(config.refreshId);
-        const loadingEl = document.getElementById(config.loadingId);
-        if (sizeEl) sizeEl.value = String(state.page_size);
-        if (searchEl) searchEl.value = state.q;
-        const requestRefresh = async () => {
-          const params = new URLSearchParams({
-            page: String(state.page),
-            page_size: String(state.page_size),
-            sort_by: state.sort_by,
-            sort_order: state.sort_order,
-            q: state.q,
-          });
-          if (loadingEl) loadingEl.style.display = 'flex';
-          try {
-            const resp = await fetch(config.api + '?' + params.toString(), {credentials:'same-origin'});
-            if (!resp.ok) return;
-            const data = await resp.json();
-            const items = data.items || [];
-            const pagination = data.pagination || {};
-            bodyEl.innerHTML = items.length ? items.map(item => config.renderRow(item, data)).join('') :
-              `<tr><td colspan="${config.colspan || 1}"><div class="empty-state">暂无数据</div></td></tr>`;
-            if (totalEl) totalEl.textContent = `第 ${pagination.page || 1} / ${pagination.total_pages || 1} 页，共 ${pagination.total || 0} 条`;
-            if (pageEl) pageEl.textContent = `${pagination.page || 1} / ${pagination.total_pages || 1}`;
-            if (prevEl) prevEl.disabled = !pagination.has_prev;
-            if (nextEl) nextEl.disabled = !pagination.has_next;
-            document.querySelectorAll(`[data-grid="${config.name}"][data-sort]`).forEach(node => {
-              const field = node.getAttribute('data-sort');
-              const icon = node.querySelector('.sort-arrow');
-              if (icon) icon.textContent = sortArrow(data.sort_by, data.sort_order, field);
-            });
-            if (typeof config.onData === 'function') config.onData(data, state);
-          } catch (e) {
-          } finally {
-            if (loadingEl) loadingEl.style.display = 'none';
-          }
-        };
-        document.querySelectorAll(`[data-grid="${config.name}"][data-sort]`).forEach(node => {
-          node.addEventListener('click', () => {
-            const field = node.getAttribute('data-sort');
-            state.sort_order = state.sort_by === field && state.sort_order === 'desc' ? 'asc' : 'desc';
-            state.sort_by = field;
-            state.page = 1;
-            requestRefresh();
-          });
-        });
-        prevEl?.addEventListener('click', () => {
-          if (prevEl.disabled) return;
-          state.page = Math.max(1, state.page - 1);
-          requestRefresh();
-        });
-        nextEl?.addEventListener('click', () => {
-          if (nextEl.disabled) return;
-          state.page = state.page + 1;
-          requestRefresh();
-        });
-        sizeEl?.addEventListener('change', () => {
-          state.page_size = Number(sizeEl.value || 20);
-          state.page = 1;
-          requestRefresh();
-        });
-        let timer = null;
-        searchEl?.addEventListener('input', () => {
-          clearTimeout(timer);
-          timer = setTimeout(() => {
-            state.q = searchEl.value.trim();
-            state.page = 1;
-            requestRefresh();
-          }, 260);
-        });
-        refreshEl?.addEventListener('click', () => requestRefresh());
-        requestRefresh();
-        if (config.refreshMs) {
-          setInterval(() => {
-            if (!document.hidden) requestRefresh();
-          }, config.refreshMs);
-        }
-      },
-    };
-    updateClock();
-    refreshTopState();
-    setInterval(updateClock, 1000);
-    setInterval(refreshTopState, 5000);
-  </script>
-  {% block scripts %}{% endblock %}
+  <div class="workspace">
+    <aside class="sidebar">
+      <h3>监控分析</h3>
+      <div class="menu">
+        <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">控制台首页 <span class="menu-badge">总览</span></a>
+        <a href="/events/view" class="{% if active_nav == 'events' %}active{% endif %}">事件中心</a>
+        <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">高级分析</a>
+        <a href="/scan-listener/view" class="{% if active_nav == 'scan_listener' %}active{% endif %}">扫描监听</a>
+      </div>
+      <div class="menu-note">查看威胁事件、攻击分析和扫描接入状态。</div>
+
+      <h3>策略处置</h3>
+      <div class="menu">
+        <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">策略中心</a>
+        <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">黑名单</a>
+        <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">手工处置</a>
+      </div>
+      <div class="menu-note">查看联动策略、阻断名单和人工干预动作。</div>
+
+      <h3>资产运营</h3>
+      <div class="menu">
+        <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产画像</a>
+        <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">探测回滚</a>
+        <a href="/system/view" class="{% if active_nav == 'system' %}active{% endif %}">系统总览</a>
+      </div>
+      <div class="menu-note">查看资产、探测回滚和系统整体状态。</div>
+
+      <h3>系统配置</h3>
+      <div class="menu">
+        <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型管理</a>
+        <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知管理</a>
+        <a href="/runtime/view" class="{% if active_nav == 'runtime' %}active{% endif %}">运行状态</a>
+      </div>
+      <div class="menu-note">查看模型、通知与运行环境信息。</div>
+    </aside>
+
+    <section class="content">
+      <nav class="section-tabs">
+        {% if active_nav in monitor_navs %}
+          <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">态势总览</a>
+          <a href="/events/view" class="{% if active_nav == 'events' %}active{% endif %}">威胁事件</a>
+          <a href="/analysis/view/1" class="{% if active_nav == 'analysis' %}active{% endif %}">攻击分析</a>
+          <a href="/scan-listener/view" class="{% if active_nav == 'scan_listener' %}active{% endif %}">监听接入</a>
+        {% elif active_nav in policy_navs %}
+          <a href="/policies/view" class="{% if active_nav == 'policies' %}active{% endif %}">联动策略</a>
+          <a href="/blocklist/view" class="{% if active_nav == 'blocklist' %}active{% endif %}">阻断名单</a>
+          <a href="/manual/view" class="{% if active_nav == 'manual' %}active{% endif %}">人工干预</a>
+        {% elif active_nav in operations_navs %}
+          <a href="/assets/view" class="{% if active_nav == 'assets' %}active{% endif %}">资产台账</a>
+          <a href="/probes/view" class="{% if active_nav == 'probes' %}active{% endif %}">回滚探测</a>
+          <a href="/system/view" class="{% if active_nav == 'system' %}active{% endif %}">设备总览</a>
+        {% else %}
+          <a href="/models/view" class="{% if active_nav == 'models' %}active{% endif %}">模型配置</a>
+          <a href="/notifications/view" class="{% if active_nav == 'notifications' %}active{% endif %}">通知链路</a>
+          <a href="/runtime/view" class="{% if active_nav == 'runtime' %}active{% endif %}">运行诊断</a>
+        {% endif %}
+      </nav>
+
+      <div class="subbar">
+        <div class="subbar-left">
+          <strong>{% block page_title %}{{ settings.app.name }}{% endblock %}</strong>
+          <small>{% block page_desc %}统一安全控制、分析与联动处置平台{% endblock %}</small>
+        </div>
+        <div class="subbar-right">
+          <span class="sub-stat">事件 <strong id="top-events">-</strong></span>
+          <span class="sub-stat">策略 <strong id="top-policies">-</strong></span>
+          <span class="sub-stat">封禁 <strong id="top-blocked">-</strong></span>
+          <span class="sub-stat">Critical <strong id="top-critical">-</strong></span>
+          <span class="sub-time" id="topbar-time"></span>
+        </div>
+      </div>
+
+      <main class="page">
+        <div class="crumbs">Home / {% block breadcrumb %}{{ settings.app.name }}{% endblock %}</div>
+        {% block content %}{% endblock %}
+      </main>
+    </section>
+  </div>
+</div>
+
+<script src="{{ url_for('static', path='device-console.js') }}"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

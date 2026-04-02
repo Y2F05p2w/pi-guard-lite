@@ -19,6 +19,7 @@ paths:
   raw_data_dir: "data/raw"
   backups_dir: "backups"
   templates_dir: "templates"
+  static_dir: "static"
 
 risk:
   alert_threshold: 40

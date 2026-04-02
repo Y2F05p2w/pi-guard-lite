@@ -4,9 +4,10 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.collector.scan_listener_service import ScanListenerService
-from app.common.config import get_settings
+from app.common.config import get_settings, resolve_path
 from app.common.db import init_db
 from app.common.logger import setup_logging
 from app.web.auth import is_authenticated, is_exempt_path
@@ -20,6 +21,9 @@ settings = get_settings()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings["app"].get("name", "Pi-Guard Lite"))
+static_dir = resolve_path(settings["paths"].get("static_dir", "static"))
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 app.include_router(web_router)
 
 

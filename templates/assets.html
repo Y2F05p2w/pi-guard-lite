@@ -3,14 +3,30 @@
 {% block page_title %}资产画像{% endblock %}
 {% block breadcrumb %}资产画像{% endblock %}
 {% block content %}
-<p class="subtle">展示当前纳入保护范围的资产、类型、重要性和负责人，便于做事件关联和资产排查。</p>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">资产台账管理</div>
+    <div class="module-bar-note">查看当前纳入保护范围的资产、类型、重要性和负责人。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/events/view">事件中心</a>
+    <a class="btn secondary" href="/system/view">系统总览</a>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>当前页资产数</div><strong id="assets-page-count">{{ items|length }}</strong></div>
+  <div class="summary-box"><div>总资产数</div><strong id="assets-total-count">{{ summary.total if summary else items|length }}</strong></div>
+  <div class="summary-box"><div>高重要性</div><strong id="assets-high-importance">-</strong></div>
+  <div class="summary-box"><div>不同负责人</div><strong id="assets-owner-count">-</strong></div>
+</div>
 
 <div class="card table-panel">
   <div class="loading-mask" id="assetsLoading">正在刷新资产数据...</div>
   <div class="card-header">
     <div>
-      <h3>资产台账</h3>
-      <div class="subtle" style="margin:6px 0 0 0">用于查看关键服务器、设备与责任归属</div>
+      <h3>资产列表</h3>
+      <div class="subtle" style="margin:6px 0 0 0">用于查看关键服务器、设备和责任归属。</div>
     </div>
     <span class="pill" id="assetsSummary">资产总数：{{ summary.total if summary else items|length }}</span>
   </div>
@@ -22,7 +38,10 @@
       <option value="50">50 条/页</option>
     </select>
     <button class="btn ghost" id="assetsRefresh">立即刷新</button>
-    <div class="toolbar-right"><span class="auto-refresh" id="assetsTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span></div>
+    <div class="toolbar-right">
+      <span class="pill">12 秒自动刷新</span>
+      <span class="auto-refresh" id="assetsTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
+    </div>
   </div>
   <table>
     <thead>
@@ -77,9 +96,13 @@ PiGuardUI.mountGrid({
   refreshMs: 12000,
   colspan: 5,
   onData(data) {
+    const items = data.items || [];
     const summary = data.summary || {};
-    const summaryEl = document.getElementById('assetsSummary');
-    if (summaryEl) summaryEl.textContent = `资产总数：${summary.total || 0}`;
+    document.getElementById('assetsSummary').textContent = `资产总数：${summary.total || 0}`;
+    document.getElementById('assets-page-count').textContent = items.length;
+    document.getElementById('assets-total-count').textContent = summary.total || 0;
+    document.getElementById('assets-high-importance').textContent = items.filter(item => Number(item.importance || 0) >= 4).length;
+    document.getElementById('assets-owner-count').textContent = new Set(items.map(item => item.owner || '-')).size;
   },
   renderRow(item) {
     return `

@@ -3,7 +3,23 @@
 {% block page_title %}系统总览{% endblock %}
 {% block breadcrumb %}系统总览{% endblock %}
 {% block content %}
-<p class="subtle">统一汇总扫描监听、通知、模型和运行状态，作为系统配置与部署联调入口。</p>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">系统总览与联调入口</div>
+    <div class="module-bar-note">集中查看扫描监听、通知、模型和运行状态，作为部署联调入口。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/runtime/view">运行状态</a>
+    <a class="btn secondary" href="/scan-listener/view">扫描监听</a>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>扫描监听</div><strong>{{ '在线' if summary.scan_listener.running else '离线' }}</strong></div>
+  <div class="summary-box"><div>通知链路</div><strong>{{ '启用' if summary.notifier.enabled else '关闭' }}</strong></div>
+  <div class="summary-box"><div>模型记录</div><strong>{{ summary.models.count }}</strong></div>
+  <div class="summary-box"><div>磁盘使用率</div><strong>{{ summary.runtime.resources.disk.used_percent }}%</strong></div>
+</div>
 
 <div class="grid">
   <div class="card">
@@ -21,12 +37,11 @@
       <div>ports</div><div>{{ summary.scan_listener.ports }}</div>
     </div>
   </div>
-
   <div class="card">
     <div class="card-header">
       <div>
         <h3>通知状态</h3>
-        <div class="subtle" style="margin:4px 0 0">查看通知通道是否启用、超时参数和配置情况。</div>
+        <div class="subtle" style="margin:4px 0 0">查看通知通道与配置情况。</div>
       </div>
       <a class="btn secondary" href="/notifications/view">查看</a>
     </div>
@@ -37,12 +52,11 @@
       <div>timeout</div><div>{{ summary.notifier.timeout_seconds }}</div>
     </div>
   </div>
-
   <div class="card">
     <div class="card-header">
       <div>
         <h3>模型状态</h3>
-        <div class="subtle" style="margin:4px 0 0">查看当前激活的异常模型与分类模型版本。</div>
+        <div class="subtle" style="margin:4px 0 0">查看当前激活模型版本。</div>
       </div>
       <a class="btn secondary" href="/models/view">查看</a>
     </div>
@@ -71,12 +85,11 @@
       <div>temperature</div><div>{{ summary.runtime.resources.temperature_c if summary.runtime.resources.temperature_c is not none else '-' }}</div>
     </div>
   </div>
-
   <div class="card">
     <div class="card-header">
       <div>
-        <h3>systemd</h3>
-        <div class="subtle" style="margin:4px 0 0">用于查看关键服务是否已安装并运行。</div>
+        <h3>systemd 状态</h3>
+        <div class="subtle" style="margin:4px 0 0">查看关键服务是否已安装并运行。</div>
       </div>
     </div>
     <div class="code">{{ summary.runtime.systemd.services }}</div>

@@ -3,18 +3,30 @@
 {% block page_title %}黑名单{% endblock %}
 {% block breadcrumb %}黑名单{% endblock %}
 {% block content %}
-<p class="subtle">记录自动封禁和手工封禁的目标列表、原因、状态和过期时间，用于查看当前阻断情况。</p>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">阻断名单管理</div>
+    <div class="module-bar-note">查看自动封禁和手工封禁目标、原因、状态与过期时间。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/policies/view">相关策略</a>
+    <a class="btn secondary" href="/manual/view">手工处置</a>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>当前页记录数</div><strong id="block-page-count">{{ items|length }}</strong></div>
+  <div class="summary-box"><div>Active</div><strong id="block-active-count">-</strong></div>
+  <div class="summary-box"><div>Released</div><strong id="block-released-count">-</strong></div>
+  <div class="summary-box"><div>唯一目标 IP</div><strong id="block-unique-ip">-</strong></div>
+</div>
 
 <div class="card table-panel">
   <div class="loading-mask" id="blocklistLoading">正在刷新黑名单数据...</div>
   <div class="card-header">
     <div>
-      <h3>阻断名单</h3>
-      <div class="subtle" style="margin:6px 0 0 0">查看当前阻断目标、原因、状态和过期时间</div>
-    </div>
-    <div class="toolbar-right">
-      <span class="pill">8 秒自动刷新</span>
-      <a class="btn secondary" href="/policies/view">相关策略</a>
+      <h3>阻断名单列表</h3>
+      <div class="subtle" style="margin:6px 0 0 0">用于查看当前阻断目标、原因、状态和过期时间。</div>
     </div>
   </div>
   <div class="toolbar">
@@ -25,7 +37,10 @@
       <option value="50">50 条/页</option>
     </select>
     <button class="btn ghost" id="blocklistRefresh">立即刷新</button>
-    <div class="toolbar-right"><span class="auto-refresh" id="blocklistTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span></div>
+    <div class="toolbar-right">
+      <span class="pill">8 秒自动刷新</span>
+      <span class="auto-refresh" id="blocklistTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
+    </div>
   </div>
   <table>
     <thead>
@@ -81,6 +96,13 @@ PiGuardUI.mountGrid({
   query: {{ query|default('', true)|tojson }},
   refreshMs: 8000,
   colspan: 6,
+  onData(data) {
+    const items = data.items || [];
+    document.getElementById('block-page-count').textContent = items.length;
+    document.getElementById('block-active-count').textContent = items.filter(item => String(item.status || '').toLowerCase() === 'active').length;
+    document.getElementById('block-released-count').textContent = items.filter(item => String(item.status || '').toLowerCase() === 'released').length;
+    document.getElementById('block-unique-ip').textContent = new Set(items.map(item => item.target_ip || '-')).size;
+  },
   renderRow(item) {
     return `
       <tr class="clickable" onclick="window.location='/blocklist/view/${encodeURIComponent(item.id)}'">

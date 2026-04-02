@@ -3,14 +3,30 @@
 {% block page_title %}扫描监听{% endblock %}
 {% block breadcrumb %}扫描监听{% endblock %}
 {% block content %}
-<p class="subtle">展示自动监听真实扫描行为的运行状态，并提供推荐扫描命令和联调建议。</p>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">扫描监听联调</div>
+    <div class="module-bar-note">查看自动监听状态、推荐扫描命令和真实扫描联调顺序。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/events/view">事件中心</a>
+    <a class="btn secondary" href="/system/view">系统总览</a>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>Enabled</div><strong id="sum-sl-enabled">{{ status.enabled }}</strong></div>
+  <div class="summary-box"><div>Running</div><strong id="sum-sl-running">{{ status.running }}</strong></div>
+  <div class="summary-box"><div>Bind Host</div><strong id="sum-sl-bind">{{ status.bind_host }}</strong></div>
+  <div class="summary-box"><div>Report Host</div><strong id="sum-sl-report">{{ status.report_host }}</strong></div>
+</div>
 
 <div class="split">
   <div class="card">
     <div class="card-header">
       <div>
-        <h3>当前状态</h3>
-        <div class="subtle" style="margin:4px 0 0">用于确认监听器是否启用、是否随 Web 自动启动以及当前端口范围。</div>
+        <h3>监听状态</h3>
+        <div class="subtle" style="margin:4px 0 0">用于确认监听器是否已启用、自动启动及当前端口范围。</div>
       </div>
     </div>
     <div class="kv">
@@ -27,19 +43,19 @@
   <div class="card">
     <div class="card-header">
       <div>
-        <h3>推荐命令</h3>
+        <h3>推荐扫描命令</h3>
         <div class="subtle" style="margin:4px 0 0">在另一台主机上执行真实 TCP 连接扫描。</div>
       </div>
     </div>
     <div class="code">nmap -sT -Pn -n -p {{ (status.ports or [])|join(',') if status.ports else '2201-2212' }} {{ status.report_host or '你的本机IP' }}</div>
-    <div class="subtle" style="margin-top:12px">扫描完成后，可在事件中心、策略中心和高级分析页面查看结果。</div>
+    <div class="subtle" style="margin-top:12px">扫描完成后，可在事件中心、策略中心和高级分析页查看结果。</div>
   </div>
 </div>
 
 <div class="card" style="margin-top:12px">
   <div class="card-header">
     <div>
-      <h3>联调建议</h3>
+      <h3>联调顺序</h3>
       <div class="subtle" style="margin:4px 0 0">用于真实主机扫描演示时的操作顺序。</div>
     </div>
   </div>
@@ -60,6 +76,10 @@ async function refreshScanStatus() {
     const resp = await fetch('/scan-listener/status', {credentials:'same-origin'});
     if (!resp.ok) return;
     const data = await resp.json();
+    document.getElementById('sum-sl-enabled').textContent = data.enabled;
+    document.getElementById('sum-sl-running').textContent = data.running;
+    document.getElementById('sum-sl-bind').textContent = data.bind_host;
+    document.getElementById('sum-sl-report').textContent = data.report_host;
     document.getElementById('sl-enabled').textContent = data.enabled;
     document.getElementById('sl-auto').textContent = data.auto_start_with_web;
     document.getElementById('sl-running').textContent = data.running;

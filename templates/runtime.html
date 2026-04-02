@@ -3,14 +3,30 @@
 {% block page_title %}运行状态{% endblock %}
 {% block breadcrumb %}运行状态{% endblock %}
 {% block content %}
-<p class="subtle">用于查看主机信息、关键二进制、systemd 状态和运行资源，适合做树莓派或 Windows 本地环境检查。</p>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">运行环境检查</div>
+    <div class="module-bar-note">查看主机信息、关键二进制、systemd 状态和运行资源。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/system/view">系统总览</a>
+    <a class="btn secondary" href="/scan-listener/view">扫描监听</a>
+  </div>
+</div>
+
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>主机名</div><strong id="sum-hostname">{{ report.host.hostname }}</strong></div>
+  <div class="summary-box"><div>Python</div><strong id="sum-python">{{ report.host.python }}</strong></div>
+  <div class="summary-box"><div>磁盘使用率</div><strong id="sum-disk">{{ report.resources.disk.used_percent }}%</strong></div>
+  <div class="summary-box"><div>温度</div><strong id="sum-temp">{{ report.resources.temperature_c if report.resources.temperature_c is not none else '-' }}</strong></div>
+</div>
 
 <div class="split">
   <div class="card">
     <div class="card-header">
       <div>
         <h3>主机信息</h3>
-        <div class="subtle" style="margin:4px 0 0">当前主机、平台、Python 与工作目录。</div>
+        <div class="subtle" style="margin:4px 0 0">当前主机、平台、Python 和工作目录。</div>
       </div>
     </div>
     <div class="kv">
@@ -20,12 +36,11 @@
       <div>工作目录</div><div id="rt-cwd">{{ report.paths.cwd }}</div>
     </div>
   </div>
-
   <div class="card">
     <div class="card-header">
       <div>
         <h3>资源状态</h3>
-        <div class="subtle" style="margin:4px 0 0">查看磁盘与温度，辅助判断是否需要清理或降载。</div>
+        <div class="subtle" style="margin:4px 0 0">用于判断是否需要清理或降载。</div>
       </div>
     </div>
     <div class="kv">
@@ -43,17 +58,16 @@
     <div class="card-header">
       <div>
         <h3>关键二进制</h3>
-        <div class="subtle" style="margin:4px 0 0">用于查看 Python、Suricata、Fluent Bit 等是否可用。</div>
+        <div class="subtle" style="margin:4px 0 0">查看 Python、Suricata、Fluent Bit 等是否可用。</div>
       </div>
     </div>
     <div class="code" id="rt-binaries">{{ report.binaries }}</div>
   </div>
-
   <div class="card">
     <div class="card-header">
       <div>
         <h3>systemd 状态</h3>
-        <div class="subtle" style="margin:4px 0 0">用于查看 Web、pipeline、定时任务和桥接服务状态。</div>
+        <div class="subtle" style="margin:4px 0 0">查看 Web、pipeline、定时任务与桥接服务状态。</div>
       </div>
     </div>
     <div class="code" id="rt-systemd">{{ report.systemd.services }}</div>
@@ -64,7 +78,7 @@
   <div class="card-header">
     <div>
       <h3>运维建议</h3>
-      <div class="subtle" style="margin:4px 0 0">运行异常时优先从磁盘、温度、服务状态和健康接口排查。</div>
+      <div class="subtle" style="margin:4px 0 0">运行异常时优先从磁盘、温度和服务状态排查。</div>
     </div>
   </div>
   <table>
@@ -84,6 +98,10 @@ async function refreshRuntime() {
     const resp = await fetch('/runtime/status', {credentials:'same-origin'});
     if (!resp.ok) return;
     const data = await resp.json();
+    document.getElementById('sum-hostname').textContent = data.host.hostname;
+    document.getElementById('sum-python').textContent = data.host.python;
+    document.getElementById('sum-disk').textContent = `${data.resources.disk.used_percent}%`;
+    document.getElementById('sum-temp').textContent = data.resources.temperature_c ?? '-';
     document.getElementById('rt-hostname').textContent = data.host.hostname;
     document.getElementById('rt-platform').textContent = data.host.platform;
     document.getElementById('rt-python').textContent = data.host.python;

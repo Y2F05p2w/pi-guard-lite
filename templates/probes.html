@@ -3,38 +3,50 @@
 {% block page_title %}探测与回滚{% endblock %}
 {% block breadcrumb %}探测与回滚{% endblock %}
 {% block content %}
-<p class="subtle">统一查看策略执行后的业务探测结果与自动回滚链路，用于验证防御动作是否影响业务。</p>
-
-<div class="grid">
-  <div class="card"><div class="stat-title">总探测数</div><div class="stat-value" id="probe-total">{{ summary.total }}</div></div>
-  <div class="card"><div class="stat-title">成功</div><div class="stat-value" style="color:var(--success)" id="probe-success">{{ summary.success }}</div></div>
-  <div class="card"><div class="stat-title">失败</div><div class="stat-value" style="color:var(--danger)" id="probe-failed">{{ summary.failed }}</div></div>
+<div class="module-bar">
+  <div>
+    <div class="module-bar-title">探测与回滚管理</div>
+    <div class="module-bar-note">查看策略执行后的业务探测结果与自动回滚情况。</div>
+  </div>
+  <div class="toolbar-right">
+    <a class="btn secondary" href="/policies/view">策略中心</a>
+    <a class="btn secondary" href="/runtime/view">运行状态</a>
+  </div>
 </div>
 
-<div class="card table-panel" style="margin-top:16px">
+<div class="summary-strip" style="margin-bottom:12px">
+  <div class="summary-box"><div>总探测数</div><strong id="probe-total">{{ summary.total }}</strong></div>
+  <div class="summary-box"><div>成功</div><strong id="probe-success">{{ summary.success }}</strong></div>
+  <div class="summary-box"><div>失败</div><strong id="probe-failed">{{ summary.failed }}</strong></div>
+  <div class="summary-box"><div>成功率</div><strong id="probe-rate">-</strong></div>
+</div>
+
+<div class="card table-panel">
   <div class="loading-mask" id="probesLoading">正在刷新探测数据...</div>
   <div class="card-header">
     <div>
-      <h3>探测记录</h3>
-      <div class="subtle" style="margin:6px 0 0 0">用于验证策略是否影响业务，并触发必要回滚</div>
+      <h3>探测记录列表</h3>
+      <div class="subtle" style="margin:6px 0 0 0">用于判断策略是否影响业务，并据此触发回滚。</div>
     </div>
-    <span class="pill">8 秒自动刷新</span>
   </div>
   <div class="toolbar">
-    <input id="probesFilter" class="search-box" placeholder="搜索策略ID / 目标 / 结果">
+    <input id="probesFilter" class="search-box" placeholder="搜索策略 ID / 目标 / 结果">
     <select id="probesPageSize">
       <option value="10">10 条/页</option>
       <option value="20" selected>20 条/页</option>
       <option value="50">50 条/页</option>
     </select>
     <button class="btn ghost" id="probesRefresh">立即刷新</button>
-    <div class="toolbar-right"><span class="auto-refresh" id="probesTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span></div>
+    <div class="toolbar-right">
+      <span class="pill">8 秒自动刷新</span>
+      <span class="auto-refresh" id="probesTotal">第 {{ pagination.page }} / {{ pagination.total_pages }} 页，共 {{ pagination.total }} 条</span>
+    </div>
   </div>
   <table>
     <thead>
       <tr>
         <th><button class="link-sort" data-grid="probes" data-sort="id">ID <span class="sort-arrow"></span></button></th>
-        <th>策略ID</th>
+        <th>策略 ID</th>
         <th>目标</th>
         <th><button class="link-sort" data-grid="probes" data-sort="result">结果 <span class="sort-arrow"></span></button></th>
         <th><button class="link-sort" data-grid="probes" data-sort="latency_ms">延迟(ms) <span class="sort-arrow"></span></button></th>
@@ -89,6 +101,9 @@ PiGuardUI.mountGrid({
     document.getElementById('probe-total').textContent = summary.total || 0;
     document.getElementById('probe-success').textContent = summary.success || 0;
     document.getElementById('probe-failed').textContent = summary.failed || 0;
+    const total = Number(summary.total || 0);
+    const success = Number(summary.success || 0);
+    document.getElementById('probe-rate').textContent = total ? `${Math.round((success / total) * 100)}%` : '0%';
   },
   renderRow(item) {
     return `
